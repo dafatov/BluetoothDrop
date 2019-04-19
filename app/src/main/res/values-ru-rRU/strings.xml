@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="navigation_explorer">Проводник</string>
+    <string name="navigation_friends">Друзья</string>
+    <string name="navigation_settings">Настройки</string>
+    <string name="bar_about">О программе</string>
+    <string name="button_select_all">Выбрать все</string>
+    <string name="bar_sort">Сортировка</string>
+    <string name="bar_select">Выбрать</string>
+    <string name="sizeUnits_byte">Б</string>
+    <string name="sizeUnits_kilobyte">кбайт</string>
+    <string name="sizeUnits_megabyte">Мбайт</string>
+    <string name="sizeUnits_gigabyte">Гбайт</string>
+    <string name="sizeUnits_terabyte">Тбайт</string>
+    <string name="imageButton_up">Вверх</string>
+    <string name="imageButton_refresh">Обновить</string>
+    <string name="imageButton_home">Домашняя папка</string>
+    <string name="list_preview">Предпросмотр</string>
+    <string name="spinner_selectedFiles">Выбранные файлы</string>
+    <string name="text_about">Эта программа была создана DemetriouS в 2019 году</string>
+    <string name="sort_date">по дате</string>
+    <string name="sort_name">по имени</string>
+    <string name="sort_size">по размеру</string>
+    <string name="sort_asc">по возрастанию</string>
+    <string name="sort_desc">по убыванию</string>
+    <string name="select_select">Выделить</string>
+    <string name="select_unselect">Снять выделение</string>
+    <string name="select_invert">Инвертировать выделение</string>
+    <string name="select_info">Информация: введите регулярное выражение для более точной настройки</string>
+    <string name="sort_ok">Применить</string>
+    <string name="sort_folder">Сортировать папки отдельно</string>
+    <string name="error_regex">Неверно задано регулярное выражение</string>
+    <string name="pattern_data_format">dd.MM.yy HH:mm</string>
+    <string name="sort_ignore_case">Игнорировать регистр</string>
+</resources>

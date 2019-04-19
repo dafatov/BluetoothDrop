@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/bar_select"
+        android:icon="@drawable/ic_action_done_all"
+        android:title="@string/bar_select"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/bar_sort"
+        android:icon="@drawable/ic_action_sort"
+        android:title="@string/bar_sort"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/bar_about"
+        android:icon="@drawable/ic_action_info_outline"
+        android:title="@string/bar_about"
+        app:showAsAction="ifRoom" />
+</menu>
