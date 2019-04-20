@@ -18,10 +18,10 @@ class Bluetooth {
     BluetoothSocket clientSocket = null;
     BluetoothSocket serverSocket = null;
 
-    Bluetooth(MainActivity mainActivity) {
+    Bluetooth(MainActivity mainActivity, BluetoothDevice device) {
         this.mainActivity = mainActivity;
 
-        client = new Client();
+        client = new Client(device);
         clientThread = new Thread(client, "Client");
         clientThread.setDaemon(true);
 
