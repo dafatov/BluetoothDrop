@@ -40,9 +40,9 @@ class FriendsElementAdapter extends ArrayAdapter<FriendsElement> {
         viewHolder.address.setText(friendsElement.getBluetoothDevice().getAddress());
 
         if (friendsElement.isOnline()) {
-            viewHolder.status.setImageResource(R.drawable.ic_action_online);
+            viewHolder.status.setImageResource(R.drawable.ic_action_bluetooth_online);
         } else {
-            viewHolder.status.setImageResource(R.drawable.ic_action_offline);
+            viewHolder.status.setImageResource(R.drawable.ic_action_bluetooth_offline);
         }
 
         return convertView;

@@ -63,26 +63,23 @@ class ExplorerElementAdapter extends ArrayAdapter<ExplorerElement> {
             }
         }
 
-        viewHolder.select.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (viewHolder.select.isChecked()) {
-                    if (mainActivity.explorer.selectedFiles.add(new File(mainActivity.explorer.currentDirectory +
-                            "/" + viewHolder.name.getText()))) {
-                        mainActivity.selectedFiles.add(viewHolder.name.getText().toString());
-                        mainActivity.explorer.addAmount(1);
-                        explorerElement.setSelected(true);
-                    }
-                } else {
-                    if (mainActivity.explorer.selectedFiles.remove(new File(mainActivity.explorer.currentDirectory +
-                            "/" + viewHolder.name.getText()))) {
-                        mainActivity.selectedFiles.remove(viewHolder.name.getText().toString());
-                        mainActivity.explorer.addAmount(-1);
-                        explorerElement.setSelected(false);
-                    }
+        viewHolder.select.setOnClickListener(v -> {
+            if (viewHolder.select.isChecked()) {
+                if (mainActivity.explorer.selectedFiles.add(mainActivity.explorer.currentDirectory +
+                        "/" + viewHolder.name.getText())) {
+                    mainActivity.selectedFiles.add(viewHolder.name.getText().toString());
+                    mainActivity.explorer.addAmount(1);
+                    explorerElement.setSelected(true);
                 }
-                mainActivity.selectedFilesAdapter.notifyDataSetChanged();
+            } else {
+                if (mainActivity.explorer.selectedFiles.remove(mainActivity.explorer.currentDirectory +
+                        "/" + viewHolder.name.getText())) {
+                    mainActivity.selectedFiles.remove(viewHolder.name.getText().toString());
+                    mainActivity.explorer.addAmount(-1);
+                    explorerElement.setSelected(false);
+                }
             }
+            mainActivity.selectedFilesAdapter.notifyDataSetChanged();
         });
 
         return convertView;

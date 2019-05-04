@@ -1,11 +1,8 @@
 package ru.demetrious.bluetoothdrop;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
@@ -30,6 +27,10 @@ public class SortActivity extends AppCompatActivity {
 
         declarations();
         listeners();
+
+        /*folders.setVisibility(getIntent().getBooleanExtra("bottomNavigationMode", true)? View.VISIBLE:View.INVISIBLE);
+        findViewById(R.id.sort_date).setVisibility(getIntent().getBooleanExtra("bottomNavigationMode", true)? View.VISIBLE:View.INVISIBLE);
+        findViewById(R.id.sort_size).setVisibility(getIntent().getBooleanExtra("bottomNavigationMode", true)? View.VISIBLE:View.INVISIBLE);*/
     }
 
     @Override
@@ -51,16 +52,13 @@ public class SortActivity extends AppCompatActivity {
     }
 
     private void listeners() {
-        ok.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                intent.putExtra(SORT_BY, sortBy.getCheckedRadioButtonId());
-                intent.putExtra(SORT, sort.getCheckedRadioButtonId());
-                intent.putExtra(SORT_FOLDERS, folders.isChecked());
-                intent.putExtra(SORT_IGNORE_CASE, ignoreCase.isChecked());
-                setResult(Activity.RESULT_OK, intent);
-                finish();
-            }
+        ok.setOnClickListener(v -> {
+            intent.putExtra(SORT_BY, sortBy.getCheckedRadioButtonId());
+            intent.putExtra(SORT, sort.getCheckedRadioButtonId());
+            intent.putExtra(SORT_FOLDERS, folders.isChecked());
+            intent.putExtra(SORT_IGNORE_CASE, ignoreCase.isChecked());
+            setResult(Activity.RESULT_OK, intent);
+            finish();
         });
     }
 
@@ -75,14 +73,4 @@ public class SortActivity extends AppCompatActivity {
 
         ok = findViewById(R.id.sort_ok);
     }
-
-    /*void selectionSort(int* l, int* r) {
-        for (int *i = l; i < r; i++) {
-            int minz = *i, *ind = i;
-            for (int *j = i + 1; j < r; j++) {
-                if (*j < minz) minz = *j, ind = j;
-            }
-            swap(*i, *ind);
-        }
-    }*/
 }

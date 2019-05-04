@@ -32,4 +32,13 @@
     <string name="error_regex">Неверно задано регулярное выражение</string>
     <string name="pattern_data_format">dd.MM.yy HH:mm</string>
     <string name="sort_ignore_case">Игнорировать регистр</string>
+    <string name="select_clear">Очистка</string>
+    <string name="timeUnits_hours">часов</string>
+    <string name="timeUnits_minutes">минут</string>
+    <string name="timeUnits_seconds">секунд</string>
+    <string name="bluetooth_not_available">Модуль Bluetooth недоступен на этом устройстве</string>
+    <string name="bluetooth_off">Bluetooth выключен. Включите его, пожалуйста</string>
+    <string name="bluetooth_discoverable_timer">Времени осталось:</string>
+    <string name="load">Загрузка</string>
+    <string name="button_cancel">Отменить</string>
 </resources>

@@ -5,12 +5,15 @@ import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
 class Friends {
     private MainActivity mainActivity;
     BluetoothAdapter bluetoothAdapter;
+
+    boolean isDiscoverable = false;
 
     final BroadcastReceiver discoveryFinishReceiver = new BroadcastReceiver() {
         @Override
@@ -24,15 +27,53 @@ class Friends {
                     break;
                 case BluetoothDevice.ACTION_FOUND:
                     BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                    if (!device.getName().equals("")) {
+                    //if (!device.getName().equals("")) {
                         mainActivity.friendsElements.add(new FriendsElement(device, true));
                         mainActivity.friendsElementAdapter.notifyDataSetChanged();
-                    }
+                    //}
                     break;
                 case BluetoothAdapter.ACTION_DISCOVERY_FINISHED:
                     Toast.makeText(mainActivity.getApplicationContext(), "Stop discovery...", Toast.LENGTH_SHORT).show();
-                    if (mainActivity.friendsElements.size() == 0) {
+                    /*if (mainActivity.friendsElements.size() == 0) {
                         Toast.makeText(mainActivity.getApplicationContext(), "Noup found", Toast.LENGTH_LONG).show();
+                    }*/
+                    break;
+                case BluetoothAdapter.ACTION_STATE_CHANGED:
+                    switch (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.STATE_ON)) {
+                        case BluetoothAdapter.STATE_TURNING_ON:
+                            //Log.e("BluetoothState", "STATE_TURNING_ON");
+                            break;
+                        case BluetoothAdapter.STATE_TURNING_OFF:
+                            //Log.e("BluetoothState", "STATE_TURNING_OFF");
+                            break;
+                        case BluetoothAdapter.STATE_OFF:
+                            //Log.e("BluetoothState", "STATE_OFF");
+                            mainActivity.bluetooth.server.stop();
+                            if (mainActivity.navigation.getSelectedItemId() == R.id.navigation_friends) {
+                                mainActivity.navigation.setSelectedItemId(R.id.navigation_explorer);
+                                mainActivity.explorer.explorer();
+                            }
+                            break;
+                        case BluetoothAdapter.STATE_ON:
+                            //Log.e("BluetoothState", "STATE_ON");
+                            mainActivity.bluetooth.startServer();
+                            break;
+                    }
+                    break;
+                case BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED:
+                    switch (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.STATE_DISCONNECTED)) {
+                        case BluetoothAdapter.STATE_CONNECTED:
+                            Log.e("CONNECTION_STATE_CHANGE", "STATE_CONNECTED");
+                            break;
+                        case BluetoothAdapter.STATE_CONNECTING:
+                            Log.e("CONNECTION_STATE_CHANGE", "STATE_CONNECTING");
+                            break;
+                        case BluetoothAdapter.STATE_DISCONNECTED:
+                            Log.e("CONNECTION_STATE_CHANGE", "STATE_DISCONNECTED");
+                            break;
+                        case BluetoothAdapter.STATE_DISCONNECTING:
+                            Log.e("CONNECTION_STATE_CHANGE", "STATE_DISCONNECTING");
+                            break;
                     }
                     break;
                 default:
@@ -48,68 +89,54 @@ class Friends {
     void friends() {
         mainActivity.listMain.setAdapter(mainActivity.friendsElementAdapter);
 
-        mainActivity.listSpinner.setVisibility(View.INVISIBLE);
         mainActivity.imageButtonUp.setVisibility(View.INVISIBLE);
         mainActivity.textAmount.setVisibility(View.INVISIBLE);
-        mainActivity.textAmount.setText("");
+        mainActivity.textPath.setVisibility(View.VISIBLE);
+        mainActivity.imageButtonHome.setVisibility(View.VISIBLE);
+        mainActivity.listSpinner.setVisibility(View.VISIBLE);
+        mainActivity.imageButtonRefresh.setVisibility(View.VISIBLE);
 
+        mainActivity.imageButtonHome.setImageResource(R.drawable.ic_action_bluetooth_discoverable_off);
+        mainActivity.textPath.setText("");
 
-        enableDiscoveryMode();
-        showBoundedDevices();
+        Log.e("Friends", "friends");
+
+        showDiscoveringDevices();
     }
 
     void enableDiscoveryMode() {
-        if (bluetoothAdapter != null) {
+        if (bluetoothAdapter != null && !isDiscoverable) {
             Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-            //discoverableIntent.putExtra("BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION", 300);
+            discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 66);
             mainActivity.startActivityForResult(discoverableIntent, MainActivity.TURNING_ON_DISCOVERABLE);
         }
     }
 
     void showBoundedDevices() {
         mainActivity.friendsElements.clear();
-        if (checkBluetooth("showBoundedDevices")) {
+        //if (checkBluetooth("showBoundedDevices")) {
             for (BluetoothDevice bondedDevice : bluetoothAdapter.getBondedDevices()) {
                 mainActivity.friendsElements.add(new FriendsElement(bondedDevice, false));
             }
-        }
+        //}
         mainActivity.friendsElementAdapter.notifyDataSetChanged();
     }
 
     void showDiscoveringDevices() {
         mainActivity.friendsElements.clear();
+        Log.e("Friends", "showDiscoveringDevices");
 
-        if (checkBluetooth("showDiscoveringDevices")) {
+        //if (checkBluetooth("showDiscoveringDevices")) {
             stopDiscovery();
             bluetoothAdapter.startDiscovery();
-        }
+        //}
     }
 
     private void stopDiscovery() {
         if (bluetoothAdapter.isDiscovering()) bluetoothAdapter.cancelDiscovery();
     }
 
-    /*void showDiscoveringDevices() {
-        mainActivity.friendsElements.clear();
-        bluetoothAdapter.startDiscovery();
-        Toast.makeText(mainActivity.getApplicationContext() , "Starting discovery...", Toast.LENGTH_SHORT).show();
-        IntentFilter intentFilter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-        BroadcastReceiver receiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                switch (intent.getAction()) {
-                    case BluetoothDevice.ACTION_FOUND:
-                        BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                        mainActivity.friendsElements.add(new FriendsElement(device, true));
-                        mainActivity.friendsElementAdapter.notifyDataSetChanged();
-                        break;
-                }
-            }
-        };
-        mainActivity.registerReceiver(receiver, intentFilter);
-    }*/
-
-    private boolean checkBluetooth(String process) {
+    boolean checkBluetooth(String process) {
         if (bluetoothAdapter != null) {
             if (bluetoothAdapter.isEnabled()) {
                 return true;
@@ -120,7 +147,7 @@ class Friends {
                 return false;
             }
         } else {
-            Toast.makeText(mainActivity.getApplicationContext(), "Bluetooth module is not available on this device", Toast.LENGTH_SHORT).show();
+            Toast.makeText(mainActivity.getApplicationContext(), mainActivity.getString(R.string.bluetooth_not_available), Toast.LENGTH_LONG).show();
             return false;
         }
     }

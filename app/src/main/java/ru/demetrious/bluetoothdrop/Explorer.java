@@ -4,10 +4,15 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Environment;
 import android.support.annotation.IdRes;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -20,24 +25,40 @@ class Explorer {
     private MainActivity mainActivity;
 
     //
-    int sortBy = R.id.sort_name, sort = R.id.sort_asc;
-    boolean ignoreCase = true, sortFolders = true;
+    private int sortBy = R.id.sort_name, sort = R.id.sort_asc;
+    private boolean ignoreCase = true, sortFolders = true;
     //
 
-    HashSet<File> selectedFiles;
+    ArrayList<String> selectedFiles;
     String currentDirectory;
 
     Explorer(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
-        selectedFiles = new HashSet<>();
+        selectedFiles = new ArrayList<>();
         currentDirectory = getGlobalFileDir().getAbsolutePath();
+        Log.e("String", currentDirectory);
+    }
+
+    void explorer() {
+        mainActivity.listMain.setAdapter(mainActivity.explorerElementsAdapter);
+
+        mainActivity.imageButtonUp.setVisibility(View.VISIBLE);
+        mainActivity.textAmount.setVisibility(View.VISIBLE);
+        mainActivity.textPath.setVisibility(View.VISIBLE);
+        mainActivity.imageButtonHome.setVisibility(View.VISIBLE);
+        mainActivity.listSpinner.setVisibility(View.VISIBLE);
+        mainActivity.imageButtonRefresh.setVisibility(View.VISIBLE);
+
+        mainActivity.imageButtonHome.setImageResource(R.drawable.ic_action_home);
+
+        showDirectory(new File(currentDirectory));
     }
 
     File getGlobalFileDir() {
         if (Environment.isExternalStorageEmulated()) {
             return Environment.getExternalStorageDirectory();
         } else {
-            return mainActivity.getFilesDir();
+            return /*mainActivity.getFilesDir();*/new File("/storage/emmc");
         }
     }
 
@@ -53,7 +74,7 @@ class Explorer {
                 boolean selected = false;
 
                 if (!file.isDirectory()) {
-                    if (selectedFiles.contains(file)) {
+                    if (selectedFiles.contains(file.getAbsolutePath())) {
                         countSelected++;
                         selected = true;
                     }
@@ -74,7 +95,6 @@ class Explorer {
             try {
                 regex = Pattern.compile(data.getStringExtra(SelectActivity.REGEX));
 
-
                 switch (resultCode) {
                     case SelectActivity.SELECT:
                     case SelectActivity.UNSELECT:
@@ -83,14 +103,14 @@ class Explorer {
                             if (!explorerElement.isFolder() && matcher.matches()) {
                                 explorerElement.setSelected(resultCode == SelectActivity.SELECT);
                                 if (explorerElement.isSelected()) {
-                                    if (mainActivity.explorer.selectedFiles.add(new File(mainActivity.explorer.currentDirectory +
-                                            "/" + explorerElement.getName()))) {
+                                    if (mainActivity.explorer.selectedFiles.add(mainActivity.explorer.currentDirectory +
+                                            "/" + explorerElement.getName())) {
                                         mainActivity.selectedFiles.add(explorerElement.getName());
                                         mainActivity.explorer.addAmount(1);
                                     }
                                 } else {
-                                    if (mainActivity.explorer.selectedFiles.remove(new File(mainActivity.explorer.currentDirectory +
-                                            "/" + explorerElement.getName()))) {
+                                    if (mainActivity.explorer.selectedFiles.remove(mainActivity.explorer.currentDirectory +
+                                            "/" + explorerElement.getName())) {
                                         mainActivity.selectedFiles.remove(explorerElement.getName());
                                         mainActivity.explorer.addAmount(-1);
                                     }
@@ -107,14 +127,14 @@ class Explorer {
 
                                 //
                                 if (explorerElement.isSelected()) {
-                                    if (mainActivity.explorer.selectedFiles.add(new File(mainActivity.explorer.currentDirectory +
-                                            "/" + explorerElement.getName()))) {
+                                    if (mainActivity.explorer.selectedFiles.add(mainActivity.explorer.currentDirectory +
+                                            "/" + explorerElement.getName())) {
                                         mainActivity.selectedFiles.add(explorerElement.getName());
                                         mainActivity.explorer.addAmount(1);
                                     }
                                 } else {
-                                    if (mainActivity.explorer.selectedFiles.remove(new File(mainActivity.explorer.currentDirectory +
-                                            "/" + explorerElement.getName()))) {
+                                    if (mainActivity.explorer.selectedFiles.remove(mainActivity.explorer.currentDirectory +
+                                            "/" + explorerElement.getName())) {
                                         mainActivity.selectedFiles.remove(explorerElement.getName());
                                         mainActivity.explorer.addAmount(-1);
                                     }
@@ -144,19 +164,6 @@ class Explorer {
         sort();
     }
 
-    /*private void sort() {
-        for (int i = mainActivity.explorerElements.size() - 1; i > 0; i--) {
-            for (int j = 0; j < i; j++) {
-                if (sortCondition(j)) {
-                    ExplorerElement tmp = mainActivity.explorerElements.get(j);
-                    mainActivity.explorerElements.set(j, mainActivity.explorerElements.get(j + 1));
-                    mainActivity.explorerElements.set(j + 1, tmp);
-                }
-            }
-        }
-        mainActivity.explorerElementsAdapter.notifyDataSetChanged();
-    }*/
-
     private void sort() {
         ArrayList<ExplorerElement> result = new ArrayList<>();
         int mid = 0;
@@ -170,7 +177,8 @@ class Explorer {
                     break;
                 }
             }
-            if (tmp) result.add((sortFolders && explorerElement.isFolder()) ? mid : result.size(), explorerElement);
+            if (tmp)
+                result.add((sortFolders && explorerElement.isFolder()) ? mid : result.size(), explorerElement);
             if (sortFolders && explorerElement.isFolder()) mid++;
         }
         //mainActivity.explorerElements = result;
@@ -179,20 +187,9 @@ class Explorer {
         mainActivity.explorerElementsAdapter.notifyDataSetChanged();
     }
 
-    void explorer() {
-        mainActivity.listMain.setAdapter(mainActivity.explorerElementsAdapter);
-
-        mainActivity.listSpinner.setVisibility(View.VISIBLE);
-        mainActivity.imageButtonUp.setVisibility(View.VISIBLE);
-        mainActivity.textPath.setVisibility(View.VISIBLE);
-        mainActivity.textAmount.setVisibility(View.VISIBLE);
-
-        showDirectory(new File(currentDirectory));
-    }
-
     void addAmount(int addCountSelected) {
         String previous = mainActivity.textAmount.getText().toString();
-        String[] parameters = previous.replaceAll("\\)", "").replaceAll("\\(", "/").split("/");
+        String[] parameters = previous.replaceAll("\\)", "").replaceAll("\\(", "/").split("/");//change values of ammout files in current directory
 
         mainActivity.textAmount.setText(MessageFormat.format("{0}/{1}({2})", Integer.parseInt(parameters[0]) + addCountSelected, parameters[1], parameters[2]));
     }
@@ -208,7 +205,6 @@ class Explorer {
 
     private boolean sortCondition(ExplorerElement explorerElementCompared, ExplorerElement explorerElement) {
         float compareTo = 0;
-        //data.getBooleanExtra(SortActivity.SORT_FOLDERS, true);
 
         switch (sortBy) {
             case R.id.sort_name:
@@ -235,6 +231,42 @@ class Explorer {
             default:
                 Toast.makeText(mainActivity.getApplicationContext(), R.string.error, Toast.LENGTH_LONG).show();
                 System.exit(5493);
+        }
+        return false;
+    }
+
+    static byte[] toByteArray(File file) {
+        FileInputStream fileInputStream;
+        byte[] byteArray = new byte[((int) file.length())];
+
+        try {
+            fileInputStream = new FileInputStream(file);
+            fileInputStream.read(byteArray);
+            fileInputStream.close();
+        } catch (FileNotFoundException f) {
+            f.printStackTrace();
+        } catch (IOException i) {
+            i.printStackTrace();
+        }
+        return byteArray;
+    }
+
+    static boolean saveFile(byte[] bytes, String name) {
+        File file = new File(Settings.DEFAULT_SAVE_PATH + name);
+        FileOutputStream fileOutputStream;
+
+        if (!file.getParentFile().exists()) {
+            if (!file.getParentFile().mkdirs()) return false;
+        }
+        try {
+            if (!file.createNewFile()) return false;
+            fileOutputStream = new FileOutputStream(file);
+            fileOutputStream.write(bytes);
+            fileOutputStream.flush();
+            fileOutputStream.close();
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         return false;
     }

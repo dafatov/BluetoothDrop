@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 
 public class SelectActivity extends AppCompatActivity {
     final static String REGEX = "ru.demetrious.bluetoothdrop.regex";
@@ -13,6 +14,7 @@ public class SelectActivity extends AppCompatActivity {
 
     private Intent intent;
     private Button select, unselect, invert;
+    private ImageButton clear;
     private EditText regex;
 
     @Override
@@ -24,33 +26,38 @@ public class SelectActivity extends AppCompatActivity {
         listeners();
     }
 
+    @Override
+    protected void onResume() {
+        regex.setText(Settings.getPreferences().getString(Settings.APP_PREFERENCES_REGEX, getString(R.string.select_regex)));
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        Settings.getPreferences().edit().putString(Settings.APP_PREFERENCES_REGEX, regex.getText().toString()).apply();
+        super.onPause();
+    }
+
     private void listeners() {
-        select.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                intent.putExtra(REGEX, regex.getText().toString());
-                setResult(SELECT, intent);
-                finish();
-            }
+        select.setOnClickListener(v -> {
+            intent.putExtra(REGEX, regex.getText().toString());
+            setResult(SELECT, intent);
+            finish();
         });
 
-        unselect.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                intent.putExtra(REGEX, regex.getText().toString());
-                setResult(UNSELECT, intent);
-                finish();
-            }
+        unselect.setOnClickListener(v -> {
+            intent.putExtra(REGEX, regex.getText().toString());
+            setResult(UNSELECT, intent);
+            finish();
         });
 
-        invert.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                intent.putExtra(REGEX, regex.getText().toString());
-                setResult(INVERT, intent);
-                finish();
-            }
+        invert.setOnClickListener(v -> {
+            intent.putExtra(REGEX, regex.getText().toString());
+            setResult(INVERT, intent);
+            finish();
         });
+
+        clear.setOnClickListener(v -> regex.setText(""));
     }
 
     private void declarations() {
@@ -59,6 +66,7 @@ public class SelectActivity extends AppCompatActivity {
         select = findViewById(R.id.select_select);
         unselect = findViewById(R.id.select_unselect);
         invert = findViewById(R.id.select_invert);
+        clear = findViewById(R.id.select_clear);
 
         regex = findViewById(R.id.select_regex);
     }
