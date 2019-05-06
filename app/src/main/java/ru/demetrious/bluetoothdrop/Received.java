@@ -106,11 +106,6 @@ class Received extends HandlerThread {
         receivedFileSize = 0;
         mainActivity.bluetooth.handlerLoadActivity.obtainMessage(LoadActivity.HANDLER_ACTIVITY_FINISH).sendToTarget();
     }
-
-    @Override
-    public void run() {
-        super.run();
-    }
 }
 
 
