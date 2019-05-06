@@ -15,7 +15,6 @@ import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -40,11 +39,13 @@ public class MainActivity extends AppCompatActivity {
     final static int HANDLER_TIMER = 1;
     final static int HANDLER_CONNECTED = 4;
     final static int HANDLER_DISCONNECTED = 5;
-    final static int HANDLER_RECEIVED_SIZE = 9;
-    final static int HANDLER_RECEIVED_PART = 10;
-    final static int HANDLER_RECEIVED_NAME = 11;
     final static int HANDLER_SEND_START = 12;
-    final static int HANDLER_RECEIVED_START = 13;
+    final static int HANDLER_RECEIVE_START = 13;
+    final static int HANDLER_SAVE_FILE_ERROR = 14;
+    final static int HANDLER_STOP_TRANSFER_CLIENT = 15;
+    final static int HANDLER_STOP_TRANSFER_SERVER = 16;
+    final static int HANDLER_RECEIVE_HANDLER = 17;
+    final static int HANDLER_LOAD_ACTIVITY_FINISH = 18;
 
     String[] permissions = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -89,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
         send = new Send(this);
         bluetooth = new Bluetooth(this);
         //
-        new Test("Test").start();
+        new Received(this, "Received").start();
         //
 
         permissions();
@@ -201,7 +202,6 @@ public class MainActivity extends AppCompatActivity {
                     return true;
                 case R.id.navigation_friends:
                     if (friends.checkBluetooth("onNavigationItemSelected")) {
-                        Log.e("Checked", "Checked");
                         friends.friends();
                         return true;
                     }
@@ -233,19 +233,22 @@ public class MainActivity extends AppCompatActivity {
                 if (explorerElement.isFolder())
                     explorer.showDirectory(new File(explorer.currentDirectory + "/" + explorerElement.getName()));
             } else if (listMain.getAdapter().equals(friendsElementAdapter)) {
-                bluetooth.connect(position);
+                FriendsElement element = friendsElements.get(position);
+                if (bluetooth.device != null) {
+                    bluetooth.transferDate.stop();
+                } else {
+                    bluetooth.connect(element.getBluetoothDevice());
+                }
             }
         });
 
-        //TODO test
         buttonSend.setOnClickListener(v -> {
-            if (!explorer.selectedFiles.isEmpty() && bluetooth.clientSocket != null && bluetooth.clientSocket.isConnected()) {
+            if (!explorer.selectedFiles.isEmpty() && bluetooth.device != null) {
                 Intent intentLoad = new Intent(MainActivity.this, LoadActivity.class);
                 intentLoad.putExtra(LoadActivity.EXTRA_IS_SERVER, false);
                 startActivity(intentLoad);
             }
         });
-        //
 
         imageButtonUp.setOnClickListener(v -> imageButtonUp());
 
@@ -299,7 +302,7 @@ public class MainActivity extends AppCompatActivity {
         selectedFilesAdapter = new ArrayAdapter<String>(this, R.layout.support_simple_spinner_dropdown_item, selectedFiles) {
             @Override
             public void notifyDataSetChanged() {
-                buttonSend.setVisibility((!explorer.selectedFiles.isEmpty() && bluetooth.connected) ? View.VISIBLE : View.GONE);//TODO Event allows the sending data
+                buttonSend.setVisibility((!explorer.selectedFiles.isEmpty() && bluetooth.device != null) ? View.VISIBLE : View.GONE);
                 super.notifyDataSetChanged();
             }
         };
@@ -330,14 +333,8 @@ public class MainActivity extends AppCompatActivity {
         registerReceiver(friends.discoveryFinishReceiver, intentFilter);
 
         handler = new Handler() {
-            String currentFile = "";
-            PartType partType = PartType.receivedAllSize;
-            int allSize, fileSize, receivedFileSize = 0;
-            byte[] file;
-
             @Override
             public void handleMessage(Message msg) {
-                //super.handleMessage(msg);
                 switch (msg.what) {
                     case HANDLER_TIMER:
                         Message message = new Message();
@@ -356,25 +353,46 @@ public class MainActivity extends AppCompatActivity {
                     case HANDLER_CONNECTED:
                         if (!explorer.selectedFiles.isEmpty())
                             buttonSend.setVisibility(View.VISIBLE);
+                        boolean exist = false;
+                        for (int i = 0; i < friendsElements.size(); i++) {
+                            if (friendsElements.get(i).getBluetoothDevice().getAddress().equals(bluetooth.device.getAddress())) {
+                                exist = true;
+                                break;
+                            }
+                        }
+                        if (!exist)
+                            friendsElements.add(0, new FriendsElement(bluetooth.device, true));
+                        friendsElementAdapter.notifyDataSetChanged();
                         break;
                     case HANDLER_DISCONNECTED:
                         if (!explorer.selectedFiles.isEmpty()) buttonSend.setVisibility(View.GONE);
+                        friendsElementAdapter.notifyDataSetChanged();
+                        if (friends.bluetoothAdapter.isEnabled())
+                            bluetooth.startServer();
                         break;
                     case HANDLER_SEND_START:
+                        bluetooth.handlerLoadActivity = (Handler) msg.obj;
                         send.send();
                         break;
-                    case HANDLER_RECEIVED_START:
-                        bluetooth.transferDate.wait = false;
-                        //
+                    case HANDLER_RECEIVE_START:
                         Intent intentLoad = new Intent(MainActivity.this, LoadActivity.class);
                         intentLoad.putExtra(LoadActivity.EXTRA_IS_SERVER, true);
                         startActivity(intentLoad);
-                        //
                         break;
-                    case HANDLER_RECEIVED_NAME:
-                        currentFile = (String) msg.obj;
-                        LoadActivity.handler.obtainMessage(LoadActivity.HANDLER_STATUS_SET, currentFile).sendToTarget();
-                        LoadActivity.handler.obtainMessage(LoadActivity.HANDLER_PROGRESS_FILE_CHG, msg.arg1, -1).sendToTarget();
+                    case HANDLER_RECEIVE_HANDLER:
+                        bluetooth.handlerLoadActivity = (Handler) msg.obj;
+                        break;
+                    case HANDLER_SAVE_FILE_ERROR:
+                        Toast.makeText(getApplicationContext(), "Error save file: \"" + msg.obj + "\"", Toast.LENGTH_LONG).show();
+                        break;
+                    case HANDLER_STOP_TRANSFER_CLIENT:
+                        bluetooth.transferDate.cancelClient();
+                        break;
+                    case HANDLER_STOP_TRANSFER_SERVER:
+                        bluetooth.transferDate.cancelServer();
+                        break;
+                    case HANDLER_LOAD_ACTIVITY_FINISH:
+                        bluetooth.handlerLoadActivity = null;
                         break;
                 }
             }

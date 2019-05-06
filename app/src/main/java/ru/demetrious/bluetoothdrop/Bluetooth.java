@@ -3,7 +3,7 @@ package ru.demetrious.bluetoothdrop;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
-import android.os.Build;
+import android.os.Handler;
 import android.util.Log;
 
 import java.io.IOException;
@@ -13,6 +13,7 @@ import java.util.UUID;
 
 class Bluetooth {
     final static int PACKET_WIDTH = 990;
+    Handler handlerLoadActivity;
 
     MainActivity mainActivity;
 
@@ -26,7 +27,7 @@ class Bluetooth {
 
     TransferDate transferDate = null;
 
-    boolean connected = false;
+    BluetoothDevice device = null;
 
     Bluetooth(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
@@ -48,21 +49,14 @@ class Bluetooth {
         return false;
     }
 
-    void connect(int position) {
-        client = new Client(position);
+    void connect(BluetoothDevice device) {
+        client = new Client(device);
         clientThread = new Thread(client, "Client");
         clientThread.start();
     }
 
     private class Client implements Runnable {
-        int position;
-        BluetoothDevice device;
-
-        Client(int position) {
-            this.position = position;
-            synchronized (mainActivity.friendsElements) {
-                this.device = mainActivity.friendsElements.get(position).getBluetoothDevice();
-            }
+        Client(BluetoothDevice device) {
             try {
                 clientSocket = device.createRfcommSocketToServiceRecord(UUID.fromString(mainActivity.getString(R.string.UUID)));
             } catch (IOException i) {
@@ -77,14 +71,14 @@ class Bluetooth {
             try {
                 clientSocket.connect();
             } catch (IOException io) {
-                Log.e("ClientError", device.getAddress());
+                //Log.e("ClientError", tmp.getAddress());
                 stop();
                 return;
             }
 
-            //TODO add transfer manger for client
             transferDate = new TransferDate(clientSocket);
             new Thread(transferDate, "TransferDataClient").start();
+            server.stop();
         }
 
         void stop() {
@@ -130,7 +124,6 @@ class Bluetooth {
         void stop() {
             try {
                 serverAcceptSocket.close();
-                //transferDate.stop();
                 Log.e("Server", "Is stop");
             } catch (IOException e) {
                 e.printStackTrace();
@@ -142,21 +135,15 @@ class Bluetooth {
         private final BluetoothSocket socket;
         private InputStream input = null;
         private OutputStream output = null;
-        boolean wait = true;
 
         TransferDate(BluetoothSocket socket) {
             this.socket = socket;
             try {
                 input = socket.getInputStream();
                 output = socket.getOutputStream();
+                device = socket.getRemoteDevice();
                 MainActivity.handler.obtainMessage(MainActivity.HANDLER_CONNECTED).sendToTarget();
                 Log.e("ClientConnect", socket.getRemoteDevice().getAddress());
-                //
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    Log.e("ClientConnect", String.valueOf(socket.getConnectionType()));
-                }
-                //
-                connected = true;
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -165,18 +152,16 @@ class Bluetooth {
         @Override
         public void run() {
             byte[] buffer = new byte[PACKET_WIDTH];
-            int bytes = -1;
 
             while (true) {
                 try {
                     buffer = new byte[buffer.length];
-                    bytes = input.read(buffer);
-                    //
-                    Log.e("READ", FileManager.log(buffer, bytes) + "." + System.currentTimeMillis());
-                    //
-                    Test.handler.obtainMessage(Test.HANDLER_RECEIVED_PART, buffer).sendToTarget();
+                    input.read(buffer);
+                    Received.handler.obtainMessage(Received.HANDLER_RECEIVED_PART, buffer).sendToTarget();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Log.e("ClientDisconnect", socket.getRemoteDevice().getAddress());
+                    device = null;
+                    MainActivity.handler.obtainMessage(MainActivity.HANDLER_DISCONNECTED).sendToTarget();
                     break;
                 }
             }
@@ -186,25 +171,34 @@ class Bluetooth {
             try {
                 output.write(bytes);
                 output.flush();
-                //
-                Log.e("SEND", FileManager.log(bytes, 0) + "." + System.currentTimeMillis());
-                //
-                LoadActivity.handler.obtainMessage(LoadActivity.HANDLER_PROGRESS_INC).sendToTarget();
+                handlerLoadActivity.obtainMessage(LoadActivity.HANDLER_PROGRESS_INC).sendToTarget();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
-        //Вызывается для отключения
+        //Вызывается для отключения соединения
         void stop() {
             try {
-                MainActivity.handler.obtainMessage(MainActivity.HANDLER_DISCONNECTED).sendToTarget();
-                Log.e("ClientDisconnect", socket.getRemoteDevice().getAddress());
-                connected = false;
                 socket.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+
+        //Вызвается для отключения передачи данных
+        void cancelClient() {
+            mainActivity.send.stop();
+            try {
+                mainActivity.send.send.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            write(new byte[]{0, 0});
+        }
+
+        void cancelServer() {
+            write(new byte[]{0, 0});
         }
     }
 }

@@ -27,16 +27,11 @@ class Friends {
                     break;
                 case BluetoothDevice.ACTION_FOUND:
                     BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                    //if (!device.getName().equals("")) {
-                        mainActivity.friendsElements.add(new FriendsElement(device, true));
-                        mainActivity.friendsElementAdapter.notifyDataSetChanged();
-                    //}
+                    mainActivity.friendsElements.add(new FriendsElement(device, true));
+                    mainActivity.friendsElementAdapter.notifyDataSetChanged();
                     break;
                 case BluetoothAdapter.ACTION_DISCOVERY_FINISHED:
                     Toast.makeText(mainActivity.getApplicationContext(), "Stop discovery...", Toast.LENGTH_SHORT).show();
-                    /*if (mainActivity.friendsElements.size() == 0) {
-                        Toast.makeText(mainActivity.getApplicationContext(), "Noup found", Toast.LENGTH_LONG).show();
-                    }*/
                     break;
                 case BluetoothAdapter.ACTION_STATE_CHANGED:
                     switch (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.STATE_ON)) {
@@ -60,23 +55,6 @@ class Friends {
                             break;
                     }
                     break;
-                case BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED:
-                    switch (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.STATE_DISCONNECTED)) {
-                        case BluetoothAdapter.STATE_CONNECTED:
-                            Log.e("CONNECTION_STATE_CHANGE", "STATE_CONNECTED");
-                            break;
-                        case BluetoothAdapter.STATE_CONNECTING:
-                            Log.e("CONNECTION_STATE_CHANGE", "STATE_CONNECTING");
-                            break;
-                        case BluetoothAdapter.STATE_DISCONNECTED:
-                            Log.e("CONNECTION_STATE_CHANGE", "STATE_DISCONNECTED");
-                            break;
-                        case BluetoothAdapter.STATE_DISCONNECTING:
-                            Log.e("CONNECTION_STATE_CHANGE", "STATE_DISCONNECTING");
-                            break;
-                    }
-                    break;
-                default:
             }
         }
     };
@@ -99,8 +77,6 @@ class Friends {
         mainActivity.imageButtonHome.setImageResource(R.drawable.ic_action_bluetooth_discoverable_off);
         mainActivity.textPath.setText("");
 
-        Log.e("Friends", "friends");
-
         showDiscoveringDevices();
     }
 
@@ -115,9 +91,9 @@ class Friends {
     void showBoundedDevices() {
         mainActivity.friendsElements.clear();
         //if (checkBluetooth("showBoundedDevices")) {
-            for (BluetoothDevice bondedDevice : bluetoothAdapter.getBondedDevices()) {
-                mainActivity.friendsElements.add(new FriendsElement(bondedDevice, false));
-            }
+        for (BluetoothDevice bondedDevice : bluetoothAdapter.getBondedDevices()) {
+            mainActivity.friendsElements.add(new FriendsElement(bondedDevice, false));
+        }
         //}
         mainActivity.friendsElementAdapter.notifyDataSetChanged();
     }
@@ -127,8 +103,8 @@ class Friends {
         Log.e("Friends", "showDiscoveringDevices");
 
         //if (checkBluetooth("showDiscoveringDevices")) {
-            stopDiscovery();
-            bluetoothAdapter.startDiscovery();
+        stopDiscovery();
+        bluetoothAdapter.startDiscovery();
         //}
     }
 

@@ -1,5 +1,6 @@
 package ru.demetrious.bluetoothdrop;
 
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,6 +44,12 @@ class FriendsElementAdapter extends ArrayAdapter<FriendsElement> {
             viewHolder.status.setImageResource(R.drawable.ic_action_bluetooth_online);
         } else {
             viewHolder.status.setImageResource(R.drawable.ic_action_bluetooth_offline);
+        }
+
+        if (mainActivity.bluetooth.device != null && friendsElement.getBluetoothDevice().getAddress().equals(mainActivity.bluetooth.device.getAddress())) {
+            viewHolder.name.setTextColor(Color.BLUE);
+        } else {
+            viewHolder.name.setTextColor(Color.BLACK);
         }
 
         return convertView;
