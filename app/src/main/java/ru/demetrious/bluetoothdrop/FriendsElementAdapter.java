@@ -13,17 +13,18 @@ import java.util.ArrayList;
 class FriendsElementAdapter extends ArrayAdapter<FriendsElement> {
     private LayoutInflater inflater;
     private int layout;
-    private ArrayList<FriendsElement> friendsElementsList;
+    private ArrayList<FriendsElement> friendsElements;
     private MainActivity mainActivity;
 
-    FriendsElementAdapter(MainActivity mainActivity, int resource, ArrayList<FriendsElement> friendsElementsList) {
-        super(mainActivity, resource, friendsElementsList);
+    FriendsElementAdapter(MainActivity mainActivity, int resource, ArrayList<FriendsElement> friendsElements) {
+        super(mainActivity, resource, friendsElements);
         this.mainActivity = mainActivity;
-        this.friendsElementsList = friendsElementsList;
+        this.friendsElements = friendsElements;
         this.layout = resource;
         this.inflater = LayoutInflater.from(mainActivity);
     }
 
+    @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         final ViewHolder viewHolder;
 
@@ -35,7 +36,7 @@ class FriendsElementAdapter extends ArrayAdapter<FriendsElement> {
             viewHolder = (ViewHolder) convertView.getTag();
         }
 
-        final FriendsElement friendsElement = friendsElementsList.get(position);
+        final FriendsElement friendsElement = friendsElements.get(position);
 
         viewHolder.name.setText(friendsElement.getBluetoothDevice().getName());
         viewHolder.address.setText(friendsElement.getBluetoothDevice().getAddress());

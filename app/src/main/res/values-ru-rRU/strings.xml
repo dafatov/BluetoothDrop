@@ -41,4 +41,9 @@
     <string name="bluetooth_discoverable_timer">Времени осталось:</string>
     <string name="load">Загрузка</string>
     <string name="button_cancel">Отменить</string>
+    <string name="path">Выберите директорию</string>
+    <string name="send_process">Обработка файлов</string>
+    <string name="error_class">Значение по умолчанию не является объектом класса</string>
+    <string name="setting_default_path">Папка загрузки по умолчанию</string>
+    <string name="button_change_path">Изменить</string>
 </resources>

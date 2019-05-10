@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -93,7 +92,7 @@ class Explorer {
         if (resultCode != Activity.RESULT_CANCELED) {
             Pattern regex;
             try {
-                regex = Pattern.compile(data.getStringExtra(SelectActivity.REGEX));
+                regex = Pattern.compile(data.getStringExtra(SelectActivity.EXTRA_REGEX));
 
                 switch (resultCode) {
                     case SelectActivity.SELECT:
@@ -146,12 +145,12 @@ class Explorer {
                         }
                         break;
                     default:
-                        Toast.makeText(mainActivity.getApplicationContext(), R.string.error, Toast.LENGTH_LONG).show();
+                        Toast.makeText(mainActivity.getApplicationContext(), mainActivity.getString(R.string.error), Toast.LENGTH_LONG).show();
                         System.exit(4354);
                 }
                 mainActivity.explorerElementsAdapter.notifyDataSetChanged();
             } catch (PatternSyntaxException e) {
-                Toast.makeText(mainActivity.getApplicationContext(), R.string.error_regex, Toast.LENGTH_SHORT).show();
+                Toast.makeText(mainActivity.getApplicationContext(), mainActivity.getString(R.string.error_regex), Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -220,7 +219,7 @@ class Explorer {
                 compareTo = explorerElement.getSize() - explorerElementCompared.getSize();
                 break;
             default:
-                Toast.makeText(mainActivity.getApplicationContext(), R.string.error, Toast.LENGTH_LONG).show();
+                Toast.makeText(mainActivity.getApplicationContext(), mainActivity.getString(R.string.error), Toast.LENGTH_LONG).show();
                 System.exit(5454);
         }
         switch (sort) {
@@ -229,7 +228,7 @@ class Explorer {
             case R.id.sort_desc:
                 return compareTo <= 0;
             default:
-                Toast.makeText(mainActivity.getApplicationContext(), R.string.error, Toast.LENGTH_LONG).show();
+                Toast.makeText(mainActivity.getApplicationContext(), mainActivity.getString(R.string.error), Toast.LENGTH_LONG).show();
                 System.exit(5493);
         }
         return false;
@@ -252,7 +251,7 @@ class Explorer {
     }
 
     static boolean saveFile(byte[] bytes, String name) {
-        File file = new File(Settings.DEFAULT_SAVE_PATH + name);
+        File file = new File(Settings.getPreference(Settings.APP_PREFERENCES_SAVE_PATH, Settings.DEFAULT_SAVE_PATH, String.class) + name);
         FileOutputStream fileOutputStream;
 
         if (!file.getParentFile().exists()) {

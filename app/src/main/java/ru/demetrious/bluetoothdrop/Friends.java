@@ -23,15 +23,24 @@ class Friends {
             assert action != null;
             switch (action) {
                 case BluetoothAdapter.ACTION_DISCOVERY_STARTED:
-                    Toast.makeText(mainActivity.getApplicationContext(), "Start discovery...", Toast.LENGTH_SHORT).show();
                     break;
                 case BluetoothDevice.ACTION_FOUND:
                     BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                    mainActivity.friendsElements.add(new FriendsElement(device, true));
+
+                    boolean isBonded = false;
+                    for (FriendsElement friendsElement : mainActivity.friendsElements) {
+                        if (friendsElement.getBluetoothDevice().getAddress().equals(device.getAddress())) {
+                            friendsElement.setOnline(true);
+                            isBonded = true;
+                            break;
+                        }
+                    }
+                    if (!isBonded) {
+                        mainActivity.friendsElements.add(new FriendsElement(device, true));
+                    }
                     mainActivity.friendsElementAdapter.notifyDataSetChanged();
                     break;
                 case BluetoothAdapter.ACTION_DISCOVERY_FINISHED:
-                    Toast.makeText(mainActivity.getApplicationContext(), "Stop discovery...", Toast.LENGTH_SHORT).show();
                     break;
                 case BluetoothAdapter.ACTION_STATE_CHANGED:
                     switch (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.STATE_ON)) {
@@ -77,7 +86,8 @@ class Friends {
         mainActivity.imageButtonHome.setImageResource(R.drawable.ic_action_bluetooth_discoverable_off);
         mainActivity.textPath.setText("");
 
-        showDiscoveringDevices();
+        showBoundedDevices();
+        startDiscovery();
     }
 
     void enableDiscoveryMode() {
@@ -90,22 +100,17 @@ class Friends {
 
     void showBoundedDevices() {
         mainActivity.friendsElements.clear();
-        //if (checkBluetooth("showBoundedDevices")) {
         for (BluetoothDevice bondedDevice : bluetoothAdapter.getBondedDevices()) {
             mainActivity.friendsElements.add(new FriendsElement(bondedDevice, false));
         }
-        //}
         mainActivity.friendsElementAdapter.notifyDataSetChanged();
     }
 
-    void showDiscoveringDevices() {
-        mainActivity.friendsElements.clear();
+    void startDiscovery() {
         Log.e("Friends", "showDiscoveringDevices");
 
-        //if (checkBluetooth("showDiscoveringDevices")) {
         stopDiscovery();
         bluetoothAdapter.startDiscovery();
-        //}
     }
 
     private void stopDiscovery() {

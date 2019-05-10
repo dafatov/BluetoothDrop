@@ -44,4 +44,9 @@
     <string name="bluetooth_discoverable_timer">Time remain:</string>
     <string name="load">Downloading</string>
     <string name="button_cancel">Cancel</string>
+    <string name="path">Choose Directory</string>
+    <string name="send_process">Processing of files</string>
+    <string name="error_class">The default value is not an object of class</string>
+    <string name="setting_default_path">Default download folder</string>
+    <string name="button_change_path">Change</string>
 </resources>

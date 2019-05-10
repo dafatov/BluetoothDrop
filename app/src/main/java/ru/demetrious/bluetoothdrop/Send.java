@@ -9,7 +9,7 @@ class Send {
     private File[] files;
     private long[] filesParts;
     private long allParts;
-    boolean stop;
+    private boolean stop;
 
     Thread send;
 
@@ -22,7 +22,7 @@ class Send {
     }
 
     private void prepareSend() {
-        mainActivity.bluetooth.handlerLoadActivity.obtainMessage(LoadActivity.HANDLER_STATUS_SET, "Processing of files");
+        mainActivity.bluetooth.handlerLoadActivity.obtainMessage(LoadActivity.HANDLER_STATUS_SET, R.string.send_process);
         stop = false;
 
         filesPaths = mainActivity.explorer.selectedFiles.toArray(new String[0]);

@@ -1,9 +1,8 @@
 package ru.demetrious.bluetoothdrop;
 
 import android.bluetooth.BluetoothDevice;
-import android.os.Parcelable;
 
-public class FriendsElement {
+class FriendsElement {
     private BluetoothDevice bluetoothDevice;
     private boolean isOnline;
 
@@ -12,19 +11,15 @@ public class FriendsElement {
         this.isOnline = isOnline;
     }
 
-    public BluetoothDevice getBluetoothDevice() {
+    BluetoothDevice getBluetoothDevice() {
         return bluetoothDevice;
     }
 
-    public void setBluetoothDevice(BluetoothDevice bluetoothDevice) {
-        this.bluetoothDevice = bluetoothDevice;
-    }
-
-    public boolean isOnline() {
+    boolean isOnline() {
         return isOnline;
     }
 
-    public void setOnline(boolean online) {
+    void setOnline(boolean online) {
         isOnline = online;
     }
 }

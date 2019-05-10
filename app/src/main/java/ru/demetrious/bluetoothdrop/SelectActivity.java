@@ -3,13 +3,12 @@ package ru.demetrious.bluetoothdrop;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 
 public class SelectActivity extends AppCompatActivity {
-    final static String REGEX = "ru.demetrious.bluetoothdrop.regex";
+    final static String EXTRA_REGEX = "ru.demetrious.bluetoothdrop.regex";
     final static int SELECT = 1, UNSELECT = 2, INVERT = 3;
 
     private Intent intent;
@@ -28,31 +27,31 @@ public class SelectActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
-        regex.setText(Settings.getPreferences().getString(Settings.APP_PREFERENCES_REGEX, getString(R.string.select_regex)));
+        this.regex.setText((String) Settings.getPreference(Settings.APP_PREFERENCES_REGEX, getString(R.string.select_regex), String.class));
         super.onResume();
     }
 
     @Override
     protected void onPause() {
-        Settings.getPreferences().edit().putString(Settings.APP_PREFERENCES_REGEX, regex.getText().toString()).apply();
+        Settings.getPreferencesEditor().putString(Settings.APP_PREFERENCES_REGEX, regex.getText().toString()).apply();
         super.onPause();
     }
 
     private void listeners() {
         select.setOnClickListener(v -> {
-            intent.putExtra(REGEX, regex.getText().toString());
+            intent.putExtra(EXTRA_REGEX, regex.getText().toString());
             setResult(SELECT, intent);
             finish();
         });
 
         unselect.setOnClickListener(v -> {
-            intent.putExtra(REGEX, regex.getText().toString());
+            intent.putExtra(EXTRA_REGEX, regex.getText().toString());
             setResult(UNSELECT, intent);
             finish();
         });
 
         invert.setOnClickListener(v -> {
-            intent.putExtra(REGEX, regex.getText().toString());
+            intent.putExtra(EXTRA_REGEX, regex.getText().toString());
             setResult(INVERT, intent);
             finish();
         });

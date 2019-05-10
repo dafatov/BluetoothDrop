@@ -10,7 +10,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 public class LoadActivity extends AppCompatActivity {
-    final static String EXTRA_IS_SERVER = "is_server";
+    final static String EXTRA_IS_SERVER = "ru.demetrious.bluetoothdrop.is_server";
 
     final static int HANDLER_PROGRESS_INC = 1;
     final static int HANDLER_STATUS_SET = 2;
@@ -48,7 +48,7 @@ public class LoadActivity extends AppCompatActivity {
 
     @Override
     protected void onStop() {
-        handler = null;
+        MainActivity.handler.obtainMessage(MainActivity.HANDLER_LOAD_ACTIVITY_FINISH).sendToTarget();
         super.onStop();
     }
 
@@ -73,7 +73,7 @@ public class LoadActivity extends AppCompatActivity {
         countAll = findViewById(R.id.count_all);
         status = findViewById(R.id.load_status);
 
-        buttonCancel = findViewById(R.id.button_cancel);
+        buttonCancel = findViewById(R.id.path_button_cancel);
 
         isServer = getIntent().getBooleanExtra(EXTRA_IS_SERVER, false);
 
@@ -114,11 +114,5 @@ public class LoadActivity extends AppCompatActivity {
                 }
             }
         };
-    }
-
-    @Override
-    public void finish() {
-        MainActivity.handler.obtainMessage(MainActivity.HANDLER_LOAD_ACTIVITY_FINISH).sendToTarget();
-        super.finish();
     }
 }

@@ -35,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
     final static int ACTIVITY_SORT = 2;
     final static int TURNING_ON_BLUETOOTH = 3;
     final static int TURNING_ON_DISCOVERABLE = 4;
+    final static int ACTIVITY_PATH = 5;
 
     final static int HANDLER_TIMER = 1;
     final static int HANDLER_CONNECTED = 4;
@@ -56,12 +57,14 @@ public class MainActivity extends AppCompatActivity {
 
     String lastProcess = "null";
 
-    ArrayList<ExplorerElement> explorerElements = new ArrayList<>();
+    final ArrayList<ExplorerElement> explorerElements = new ArrayList<>();
     ArrayList<String> selectedFiles = new ArrayList<>();
     final ArrayList<FriendsElement> friendsElements = new ArrayList<>();
     ExplorerElementAdapter explorerElementsAdapter;
     ArrayAdapter<String> selectedFilesAdapter;
     FriendsElementAdapter friendsElementAdapter;
+    final ArrayList<SettingsElement> settingsElements = new ArrayList<>();
+    SettingsElementAdapter settingsElementAdapter;
 
     ListView listMain;
     Spinner listSpinner;
@@ -89,16 +92,14 @@ public class MainActivity extends AppCompatActivity {
         settings = new Settings(this);
         send = new Send(this);
         bluetooth = new Bluetooth(this);
-        //
         new Received(this, "Received").start();
-        //
 
         permissions();
         declarations();
         listeners();
 
         homePath = explorer.getGlobalFileDir().getAbsolutePath();
-        explorer.currentDirectory = Settings.getPreferences().getString(Settings.APP_PREFERENCES_CURRENT_DIRECTORY, homePath);
+        explorer.currentDirectory = (String) Settings.getPreference(Settings.APP_PREFERENCES_CURRENT_DIRECTORY, homePath, String.class);
         explorer.explorer();
 
         bluetooth.startServer();
@@ -106,12 +107,13 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
+        //settings.loadPreferences();
         super.onResume();
     }
 
     @Override
     protected void onPause() {
-        Settings.getPreferences().edit().putString(Settings.APP_PREFERENCES_CURRENT_DIRECTORY, explorer.currentDirectory).apply();
+        Settings.getPreferencesEditor().putString(Settings.APP_PREFERENCES_CURRENT_DIRECTORY, explorer.currentDirectory).apply();
         super.onPause();
     }
 
@@ -184,11 +186,20 @@ public class MainActivity extends AppCompatActivity {
             case ACTIVITY_SORT:
                 if (resultCode == Activity.RESULT_OK) {
                     assert data != null;
-                    explorer.setSort(data.getIntExtra(SortActivity.SORT_BY, R.id.sort_name), data.getIntExtra(SortActivity.SORT, R.id.sort_asc), data.getBooleanExtra(SortActivity.SORT_IGNORE_CASE, true), data.getBooleanExtra(SortActivity.SORT_FOLDERS, true));
+                    explorer.setSort(data.getIntExtra(SortActivity.EXTRA_SORT_BY, R.id.sort_name), data.getIntExtra(SortActivity.EXTRA_SORT, R.id.sort_asc), data.getBooleanExtra(SortActivity.EXTRA_SORT_IGNORE_CASE, true), data.getBooleanExtra(SortActivity.EXTRA_SORT_FOLDERS, true));
+                }
+                break;
+            case ACTIVITY_PATH:
+                if (resultCode == RESULT_OK) {
+                    assert data != null;
+                    String id = data.getStringExtra(PathActivity.EXTRA_PARENT_SETTING);
+                    String current = data.getStringExtra(PathActivity.EXTRA_CURRENT_DIR);
+                    settingsElements.get(Integer.parseInt(id.replaceAll("ru.demetrious.bluetoothdrop.setting", ""))).setDescription(current);
+                    settingsElementAdapter.notifyDataSetChanged();
                 }
                 break;
             default:
-                Toast.makeText(getApplicationContext(), R.string.error, Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), getString(R.string.error), Toast.LENGTH_LONG).show();
                 System.exit(32342);
         }
     }
@@ -219,7 +230,7 @@ public class MainActivity extends AppCompatActivity {
                     explorer.showDirectory(new File(explorer.currentDirectory));
                     break;
                 case R.id.navigation_friends:
-                    friends.showDiscoveringDevices();
+                    friends.startDiscovery();
                     break;
                 case R.id.navigation_settings:
                     break;
@@ -258,7 +269,8 @@ public class MainActivity extends AppCompatActivity {
                     explorer.showDirectory(new File(explorer.currentDirectory));
                     break;
                 case R.id.navigation_friends:
-                    friends.showDiscoveringDevices();
+                    friends.showBoundedDevices();
+                    friends.startDiscovery();
                     break;
             }
         });
@@ -297,6 +309,7 @@ public class MainActivity extends AppCompatActivity {
         listMain.setAdapter(explorerElementsAdapter);
 
         friendsElementAdapter = new FriendsElementAdapter(this, R.layout.advanced_list_friends, friendsElements);
+        settingsElementAdapter = new SettingsElementAdapter(this, R.layout.advanced_list_settings, settingsElements);
 
         listSpinner = findViewById(R.id.list_spinner);
         selectedFilesAdapter = new ArrayAdapter<String>(this, R.layout.support_simple_spinner_dropdown_item, selectedFiles) {
@@ -419,7 +432,7 @@ public class MainActivity extends AppCompatActivity {
                 navigation.setSelectedItemId(R.id.navigation_friends);
                 break;
             default:
-                Toast.makeText(getApplicationContext(), R.string.error, Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), getString(R.string.error), Toast.LENGTH_LONG).show();
                 System.exit(3464);
         }
     }

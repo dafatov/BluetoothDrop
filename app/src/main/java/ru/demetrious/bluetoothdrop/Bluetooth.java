@@ -15,15 +15,15 @@ class Bluetooth {
     final static int PACKET_WIDTH = 990;
     Handler handlerLoadActivity;
 
-    MainActivity mainActivity;
+    private MainActivity mainActivity;
 
-    Thread clientThread;
-    Client client;
-    Thread serverThread;
+    private Thread clientThread;
+    private Client client;
+    private Thread serverThread;
     Server server;
 
-    BluetoothSocket clientSocket = null;
-    BluetoothSocket serverSocket = null;
+    private BluetoothSocket clientSocket = null;
+    private BluetoothSocket serverSocket = null;
 
     TransferDate transferDate = null;
 
@@ -38,15 +38,13 @@ class Bluetooth {
         serverThread = null;
     }
 
-    boolean startServer() {
+    void startServer() {
         if (mainActivity.friends.bluetoothAdapter.isEnabled()) {
             server = new Server();
             serverThread = new Thread(server, "Server");
             serverThread.setDaemon(true);
             serverThread.start();
-            return true;
         }
-        return false;
     }
 
     void connect(BluetoothDevice device) {
@@ -112,7 +110,6 @@ class Bluetooth {
                 }
 
                 if (serverSocket != null) {
-                    //TODO add transfer manager for server
                     transferDate = new TransferDate(serverSocket);
                     new Thread(transferDate, "TransferDataServer").start();
                     stop();
