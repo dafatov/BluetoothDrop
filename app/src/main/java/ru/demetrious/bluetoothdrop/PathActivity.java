@@ -78,7 +78,15 @@ public class PathActivity extends AppCompatActivity {
         path.setText(this.current);
         for (File file : current.listFiles()) {
             if (file.isDirectory()) {
-                arrayList.add(file.getName());
+                boolean tmp = true;
+                for (int i = 0; i < arrayList.size(); i++) {
+                    if (file.getName().compareToIgnoreCase(arrayList.get(i)) < 0) {
+                        arrayList.add(i, file.getName());
+                        tmp = false;
+                        break;
+                    }
+                }
+                if (tmp) arrayList.add(file.getName());
             }
         }
         if (!this.current.equals(home))

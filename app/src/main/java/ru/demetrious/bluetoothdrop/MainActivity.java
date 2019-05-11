@@ -369,6 +369,7 @@ public class MainActivity extends AppCompatActivity {
                         boolean exist = false;
                         for (int i = 0; i < friendsElements.size(); i++) {
                             if (friendsElements.get(i).getBluetoothDevice().getAddress().equals(bluetooth.device.getAddress())) {
+                                friendsElements.get(i).setOnline(true);
                                 exist = true;
                                 break;
                             }
