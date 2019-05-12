@@ -5,6 +5,7 @@ import java.io.File;
 class Send {
     private MainActivity mainActivity;
 
+    //TODO оптимизировать хранение информации о файлов + добавить возможность отправлять папки + не записывать пакеты во временную переменную
     private String[] filesPaths;
     private File[] files;
     private long[] filesParts;
