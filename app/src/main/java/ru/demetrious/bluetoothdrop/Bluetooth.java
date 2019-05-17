@@ -3,6 +3,7 @@ package ru.demetrious.bluetoothdrop;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
+import android.os.Build;
 import android.os.Handler;
 import android.util.Log;
 
@@ -26,6 +27,9 @@ class Bluetooth {
     private BluetoothSocket serverSocket = null;
 
     TransferDate transferDate = null;
+    Thread transfer = null;
+    boolean isServer = false;
+    boolean isTransferring = false;
 
     BluetoothDevice device = null;
 
@@ -75,7 +79,8 @@ class Bluetooth {
             }
 
             transferDate = new TransferDate(clientSocket);
-            new Thread(transferDate, "TransferDataClient").start();
+            transfer = new Thread(transferDate, "TransferDataClient");
+            transfer.start();
             server.stop();
         }
 
@@ -111,7 +116,8 @@ class Bluetooth {
 
                 if (serverSocket != null) {
                     transferDate = new TransferDate(serverSocket);
-                    new Thread(transferDate, "TransferDataServer").start();
+                    transfer = new Thread(transferDate, "TransferDataServer");
+                    transfer.start();
                     stop();
                     break;
                 }
@@ -140,6 +146,10 @@ class Bluetooth {
                 output = socket.getOutputStream();
                 device = socket.getRemoteDevice();
                 MainActivity.handler.obtainMessage(MainActivity.HANDLER_CONNECTED).sendToTarget();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    Log.e("MaxReceivePacketSize", String.valueOf(socket.getMaxReceivePacketSize()));
+                    Log.e("MaxTransmitPacketSize", String.valueOf(socket.getMaxTransmitPacketSize()));
+                }
                 Log.e("ClientConnect", socket.getRemoteDevice().getAddress());
             } catch (IOException e) {
                 e.printStackTrace();
@@ -155,6 +165,16 @@ class Bluetooth {
                     buffer = new byte[buffer.length];
                     input.read(buffer);
                     Received.handler.obtainMessage(Received.HANDLER_RECEIVED_PART, buffer).sendToTarget();
+                    //
+                    StringBuilder stringBuilder = new StringBuilder();
+                    stringBuilder.append("[");
+                    for (int i = 0; i < buffer.length; i++) {
+                        stringBuilder.append(buffer[i]);
+                        if (i == buffer.length - 1) stringBuilder.append("]");
+                        else stringBuilder.append(",");
+                    }
+                    //Log.e("PACKET", stringBuilder.toString());
+                    //
                 } catch (IOException e) {
                     Log.e("ClientDisconnect", socket.getRemoteDevice().getAddress());
                     device = null;
@@ -183,8 +203,18 @@ class Bluetooth {
             }
         }
 
+        void cancel() {
+            if (isTransferring) {
+                if (isServer)
+                    cancelServer();
+                else
+                    cancelClient();
+                isTransferring = false;
+            }
+        }
+
         //Вызвается для отключения передачи данных
-        void cancelClient() {
+        private void cancelClient() {
             mainActivity.send.stop();
             try {
                 mainActivity.send.send.join();
@@ -192,10 +222,12 @@ class Bluetooth {
                 e.printStackTrace();
             }
             write(new byte[]{0, 0});
+            Log.e("Bluetooth", "ClientStop");
         }
 
-        void cancelServer() {
+        private void cancelServer() {
             write(new byte[]{0, 0});
+            Log.e("Bluetooth", "ServerStop");
         }
     }
 }

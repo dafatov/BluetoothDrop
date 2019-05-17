@@ -38,12 +38,18 @@ public class LoadActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         if (isServer) {
-            setTitle("Receiving");
+            setTitle(getString(R.string.send_title_receive));
             MainActivity.handler.obtainMessage(MainActivity.HANDLER_RECEIVE_HANDLER, handler).sendToTarget();
         } else {
-            setTitle("Sending");
+            setTitle(getString(R.string.send_title_send));
             MainActivity.handler.obtainMessage(MainActivity.HANDLER_SEND_START, handler).sendToTarget();
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setFinishOnTouchOutside(false);
     }
 
     @Override
@@ -85,16 +91,6 @@ public class LoadActivity extends AppCompatActivity {
                         status.setText((CharSequence) msg.obj);
                         Log.e("STATUS_SET", (String) msg.obj);
                         break;
-                    case LoadActivity.HANDLER_PROGRESS_INC:
-                        progressBarFile.setProgress(progressBarFile.getProgress() + 1);
-                        progressBarAll.setProgress(progressBarAll.getProgress() + 1);
-
-                        String tmp = 100 * progressBarFile.getProgress() / progressBarFile.getMax() + "%";
-                        if (!tmp.equals(countFile.getText().toString())) countFile.setText(tmp);
-                        tmp = 100 * progressBarAll.getProgress() / progressBarAll.getMax() + "%";
-                        if (!tmp.equals(countAll.getText().toString()))
-                            countAll.setText(tmp);
-                        break;
                     case LoadActivity.HANDLER_PROGRESS_FILE_CHG:
                         progressBarFile.setProgress(0);
                         progressBarFile.setMax(msg.arg1);
@@ -106,6 +102,16 @@ public class LoadActivity extends AppCompatActivity {
                         progressBarAll.setMax(msg.arg1);
                         countAll.setText("0%");
                         Log.e("PROGRESS_ALL_CHG", progressBarAll.getMax() + "." + progressBarAll.getProgress() + "." + this.toString());
+                        break;
+                    case LoadActivity.HANDLER_PROGRESS_INC:
+                        progressBarFile.setProgress(progressBarFile.getProgress() + 1);
+                        progressBarAll.setProgress(progressBarAll.getProgress() + 1);
+
+                        String tmp = 100 * progressBarFile.getProgress() / progressBarFile.getMax() + "%";
+                        if (!tmp.equals(countFile.getText().toString())) countFile.setText(tmp);
+                        tmp = 100 * progressBarAll.getProgress() / progressBarAll.getMax() + "%";
+                        if (!tmp.equals(countAll.getText().toString()))
+                            countAll.setText(tmp);
                         break;
                     case LoadActivity.HANDLER_ACTIVITY_FINISH:
                         Log.e("ACTIVITY_FINISH", " ");

@@ -47,36 +47,39 @@ class Send {
         send = new Thread(() -> {
             prepareSend();
 
-            mainActivity.bluetooth.handlerLoadActivity.obtainMessage(LoadActivity.HANDLER_PROGRESS_ALL_CHG, (int) Math.ceil((double) allParts / Bluetooth.PACKET_WIDTH), -1).sendToTarget();
-            byte[] tmp = String.valueOf(allParts).getBytes();
-            byte[] full = new byte[Bluetooth.PACKET_WIDTH];
-            full[0] = (byte) (tmp.length / 256);
-            full[1] = (byte) (tmp.length % 256);
-            System.arraycopy(tmp, 0, full, 2, tmp.length);
-            mainActivity.bluetooth.transferDate.write(full);//1
-
-            for (int i = 0; i < files.length && !stop; i++) {
-                mainActivity.bluetooth.handlerLoadActivity.obtainMessage(LoadActivity.HANDLER_STATUS_SET, filesPaths[i]).sendToTarget();
-
-                byte[] bytes = Explorer.toByteArray(files[i]);
-
-                mainActivity.bluetooth.handlerLoadActivity.obtainMessage(LoadActivity.HANDLER_PROGRESS_FILE_CHG, (int) Math.ceil((double) filesParts[i] / Bluetooth.PACKET_WIDTH), -1).sendToTarget();
-
-                tmp = String.valueOf(filesParts[i]).getBytes();
-                full = new byte[full.length];
+            if (allParts > 0) {
+                mainActivity.bluetooth.handlerLoadActivity.obtainMessage(LoadActivity.HANDLER_PROGRESS_ALL_CHG, (int) Math.ceil((double) allParts / Bluetooth.PACKET_WIDTH), -1).sendToTarget();
+                byte[] tmp = String.valueOf(allParts).getBytes();
+                byte[] full = new byte[Bluetooth.PACKET_WIDTH];
                 full[0] = (byte) (tmp.length / 256);
                 full[1] = (byte) (tmp.length % 256);
                 System.arraycopy(tmp, 0, full, 2, tmp.length);
-                mainActivity.bluetooth.transferDate.write(full);//2
+                mainActivity.bluetooth.transferDate.write(full);//1
 
-                tmp = filesPaths[i].getBytes();
-                full = new byte[full.length];
-                full[0] = (byte) (tmp.length / 256);
-                full[1] = (byte) (tmp.length % 256);
-                System.arraycopy(tmp, 0, full, 2, tmp.length);
-                mainActivity.bluetooth.transferDate.write(full);//3
 
-                for (int j = 0; j < bytes.length && !stop; j += Bluetooth.PACKET_WIDTH - 2) {
+                for (int i = 0; i < files.length && !stop; i++) {
+                    if (filesParts[i] > 0) {
+                        mainActivity.bluetooth.handlerLoadActivity.obtainMessage(LoadActivity.HANDLER_STATUS_SET, filesPaths[i]).sendToTarget();
+
+                        //byte[] bytes = Explorer.toByteArray(files[i]);
+
+                        mainActivity.bluetooth.handlerLoadActivity.obtainMessage(LoadActivity.HANDLER_PROGRESS_FILE_CHG, (int) Math.ceil((double) filesParts[i] / Bluetooth.PACKET_WIDTH), -1).sendToTarget();
+
+                        tmp = String.valueOf(filesParts[i]).getBytes();
+                        full = new byte[full.length];
+                        full[0] = (byte) (tmp.length / 256);
+                        full[1] = (byte) (tmp.length % 256);
+                        System.arraycopy(tmp, 0, full, 2, tmp.length);
+                        mainActivity.bluetooth.transferDate.write(full);//2
+
+                        tmp = filesPaths[i].getBytes();
+                        full = new byte[full.length];
+                        full[0] = (byte) (tmp.length / 256);
+                        full[1] = (byte) (tmp.length % 256);
+                        System.arraycopy(tmp, 0, full, 2, tmp.length);
+                        mainActivity.bluetooth.transferDate.write(full);//3
+
+                /*for (int j = 0; j < bytes.length && !stop; j += Bluetooth.PACKET_WIDTH - 2) {
                     full = new byte[full.length];
                     int size = Math.min(bytes.length - j, Bluetooth.PACKET_WIDTH - 2);
                     full[0] = (byte) (size / 256);
@@ -84,7 +87,24 @@ class Send {
                     if (full[1] < 0) full[0]++;
                     System.arraycopy(bytes, j, full, 2, size);
                     mainActivity.bluetooth.transferDate.write(full);//4
+                }*/
+                        if (!stop) FileManager.openFileInputStream(files[i]);
+                        for (int j = 0; j < filesParts[i] && !stop; j += Bluetooth.PACKET_WIDTH - 2) {
+                            full = new byte[full.length];
+                            int size = (int) Math.min(filesParts[i] - j, Bluetooth.PACKET_WIDTH - 2);
+                            tmp = FileManager.read(size);
+                            full[0] = (byte) (size / 256);
+                            full[1] = (byte) (size % 256);
+                            if (full[1] < 0) full[0]++;
+                            System.arraycopy(tmp, 0, full, 2, size);
+                            mainActivity.bluetooth.transferDate.write(full);
+                        }
+                        FileManager.closeFileInputStream();
+                    }
                 }
+                mainActivity.bluetooth.isTransferring = false;
+            } else {
+                MainActivity.handler.obtainMessage(MainActivity.HANDLER_EMPTY_SEND).sendToTarget();
             }
             mainActivity.bluetooth.handlerLoadActivity.obtainMessage(LoadActivity.HANDLER_ACTIVITY_FINISH).sendToTarget();
         });

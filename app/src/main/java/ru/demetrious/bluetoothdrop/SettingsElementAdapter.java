@@ -51,14 +51,14 @@ class SettingsElementAdapter extends ArrayAdapter<SettingsElement> {
         switch (settingsElement.getType()) {
             case Directory:
                 Button button = new Button(convertView.getContext());
-                changeSettingType(button, convertView);
+                setSettingType(button, convertView);
                 button.setText(mainActivity.getString(R.string.button_change_path));
 
                 button.setOnClickListener(v -> {
                     Intent intent = new Intent(mainActivity, PathActivity.class);
                     intent.putExtra(PathActivity.EXTRA_PARENT_SETTING, settingsElement.getID());
                     intent.putExtra(PathActivity.EXTRA_CURRENT_DIR, settingsElement.getDescription());
-                    intent.putExtra(PathActivity.EXTRA_HOME, mainActivity.explorer.getGlobalFileDir().getAbsolutePath());
+                    intent.putExtra(PathActivity.EXTRA_HOME, Settings.DEFAULT_HOME_PATH);
                     mainActivity.startActivityForResult(intent, MainActivity.ACTIVITY_PATH);
                 });
                 break;
@@ -71,7 +71,7 @@ class SettingsElementAdapter extends ArrayAdapter<SettingsElement> {
                 ArrayAdapter arrayAdapter = new ArrayAdapter<>(getContext(), R.layout.support_simple_spinner_dropdown_item, arrayList);
                 spinner.setAdapter(arrayAdapter);
 
-                changeSettingType(spinner, convertView);
+                setSettingType(spinner, convertView);
                 spinner.setSelection((Integer) Settings.getPreference(settingsElement.getID(), 0, Integer.class));
                 spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
@@ -86,7 +86,7 @@ class SettingsElementAdapter extends ArrayAdapter<SettingsElement> {
                 break;
             case ToggleButton:
                 ToggleButton toggleButton = new ToggleButton(convertView.getContext());
-                changeSettingType(toggleButton, convertView);
+                setSettingType(toggleButton, convertView);
                 toggleButton.setChecked(((int) Settings.getPreference(settingsElement.getID(), 0, int.class)) == 1);
                 toggleButton.setText(String.valueOf(settingsElement.getVars()[(int) Settings.getPreference(settingsElement.getID(), 0, int.class)]));
                 toggleButton.setTextOff(String.valueOf(settingsElement.getVars()[0]));
@@ -97,7 +97,7 @@ class SettingsElementAdapter extends ArrayAdapter<SettingsElement> {
         return convertView;
     }
 
-    private void changeSettingType(@NonNull View typeView, View view) {
+    private void setSettingType(@NonNull View typeView, View view) {
         int id;
         ConstraintLayout constraintLayout = (ConstraintLayout) view;
 

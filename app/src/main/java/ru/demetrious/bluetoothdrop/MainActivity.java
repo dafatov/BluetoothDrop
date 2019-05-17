@@ -42,11 +42,14 @@ public class MainActivity extends AppCompatActivity {
     final static int HANDLER_DISCONNECTED = 5;
     final static int HANDLER_SEND_START = 12;
     final static int HANDLER_RECEIVE_START = 13;
-    final static int HANDLER_SAVE_FILE_ERROR = 14;
+    final static int HANDLER_OUT_OF_MEMORY = 14;
     final static int HANDLER_STOP_TRANSFER_CLIENT = 15;
     final static int HANDLER_STOP_TRANSFER_SERVER = 16;
     final static int HANDLER_RECEIVE_HANDLER = 17;
     final static int HANDLER_LOAD_ACTIVITY_FINISH = 18;
+    final static int HANDLER_EMPTY_SEND = 19;
+    final static int HANDLER_ERROR_CREATE_DIRECTORY = 20;
+    final static int HANDLER_ERROR_CREATE_FILE = 21;
 
     String[] permissions = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -78,7 +81,6 @@ public class MainActivity extends AppCompatActivity {
     Send send;
     Bluetooth bluetooth;
 
-    String homePath;//into settings
 
     static Handler handler;
 
@@ -98,8 +100,7 @@ public class MainActivity extends AppCompatActivity {
         declarations();
         listeners();
 
-        homePath = explorer.getGlobalFileDir().getAbsolutePath();
-        explorer.currentDirectory = (String) Settings.getPreference(Settings.APP_PREFERENCES_CURRENT_DIRECTORY, homePath, String.class);
+        explorer.currentDirectory = (String) Settings.getPreference(Settings.APP_PREFERENCES_CURRENT_DIRECTORY, Settings.DEFAULT_HOME_PATH, String.class);
         explorer.explorer();
 
         bluetooth.startServer();
@@ -115,6 +116,18 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         Settings.getPreferencesEditor().putString(Settings.APP_PREFERENCES_CURRENT_DIRECTORY, explorer.currentDirectory).apply();
         super.onPause();
+    }
+
+    @Override
+    protected void onStop() {
+        /*if (bluetooth.transfer != null && bluetooth.transfer.isAlive())
+            if (send.send != null && send.send.isAlive())
+                bluetooth.transferDate.cancelClient();
+            else
+                bluetooth.transferDate.cancelServer();*/
+        if (bluetooth.isTransferring)
+            bluetooth.transferDate.cancel();
+        super.onStop();
     }
 
     @Override
@@ -195,6 +208,7 @@ public class MainActivity extends AppCompatActivity {
                     String id = data.getStringExtra(PathActivity.EXTRA_PARENT_SETTING);
                     String current = data.getStringExtra(PathActivity.EXTRA_CURRENT_DIR);
                     settingsElements.get(Integer.parseInt(id.replaceAll("ru.demetrious.bluetoothdrop.setting", ""))).setDescription(current);
+                    Settings.getPreferencesEditor().putString(id, current).apply();
                     settingsElementAdapter.notifyDataSetChanged();
                 }
                 break;
@@ -278,7 +292,7 @@ public class MainActivity extends AppCompatActivity {
         imageButtonHome.setOnClickListener(v -> {
             switch (navigation.getSelectedItemId()) {
                 case R.id.navigation_explorer:
-                    explorer.showDirectory(new File(homePath));
+                    explorer.showDirectory(new File((String) Settings.getPreference(Settings.APP_SETTING_HOME_PATH, Settings.DEFAULT_HOME_PATH, String.class)));
                     break;
                 case R.id.navigation_friends:
                     friends.enableDiscoveryMode();
@@ -386,9 +400,13 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     case HANDLER_SEND_START:
                         bluetooth.handlerLoadActivity = (Handler) msg.obj;
+                        bluetooth.isTransferring = true;
+                        bluetooth.isServer = false;
                         send.send();
                         break;
                     case HANDLER_RECEIVE_START:
+                        bluetooth.isTransferring = true;
+                        bluetooth.isServer = true;
                         Intent intentLoad = new Intent(MainActivity.this, LoadActivity.class);
                         intentLoad.putExtra(LoadActivity.EXTRA_IS_SERVER, true);
                         startActivity(intentLoad);
@@ -396,14 +414,24 @@ public class MainActivity extends AppCompatActivity {
                     case HANDLER_RECEIVE_HANDLER:
                         bluetooth.handlerLoadActivity = (Handler) msg.obj;
                         break;
-                    case HANDLER_SAVE_FILE_ERROR:
-                        Toast.makeText(getApplicationContext(), "Error save file: \"" + msg.obj + "\"", Toast.LENGTH_LONG).show();
+                    case HANDLER_OUT_OF_MEMORY:
+                        Toast.makeText(getApplicationContext(), getString(R.string.error_out_of_memory), Toast.LENGTH_LONG).show();
+                        break;
+                    case HANDLER_EMPTY_SEND:
+                        Toast.makeText(getApplicationContext(), getString(R.string.error_empty_send), Toast.LENGTH_LONG).show();
+                        break;
+                    case HANDLER_ERROR_CREATE_DIRECTORY:
+                        Toast.makeText(getApplicationContext(), getString(R.string.error_create_directory), Toast.LENGTH_LONG).show();
+                        break;
+                    case HANDLER_ERROR_CREATE_FILE:
+                        Toast.makeText(getApplicationContext(), getString(R.string.error_create_file), Toast.LENGTH_LONG).show();
                         break;
                     case HANDLER_STOP_TRANSFER_CLIENT:
-                        bluetooth.transferDate.cancelClient();
-                        break;
+                        /*bluetooth.transferDate.cancelClient();
+                        break;*/
                     case HANDLER_STOP_TRANSFER_SERVER:
-                        bluetooth.transferDate.cancelServer();
+                        //bluetooth.transferDate.cancelServer();
+                        bluetooth.transferDate.cancel();
                         break;
                     case HANDLER_LOAD_ACTIVITY_FINISH:
                         bluetooth.handlerLoadActivity = null;

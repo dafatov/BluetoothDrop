@@ -44,7 +44,6 @@ public class PathActivity extends AppCompatActivity {
         });
 
         ok.setOnClickListener(v -> {
-            Settings.getPreferencesEditor().putString(Settings.APP_PREFERENCES_SAVE_PATH, current).apply();
             Intent intent = new Intent();
             intent.putExtra(EXTRA_PARENT_SETTING, parent);
             intent.putExtra(EXTRA_CURRENT_DIR, current);

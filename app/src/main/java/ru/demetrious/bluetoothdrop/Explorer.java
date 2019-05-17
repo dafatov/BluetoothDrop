@@ -4,15 +4,10 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Environment;
 import android.support.annotation.IdRes;
-import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -34,8 +29,8 @@ class Explorer {
     Explorer(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
         selectedFiles = new ArrayList<>();
-        currentDirectory = getGlobalFileDir().getAbsolutePath();
-        Log.e("String", currentDirectory);
+        //currentDirectory = Settings.DEFAULT_HOME_PATH;
+        //Log.e("String", currentDirectory);
     }
 
     void explorer() {
@@ -234,7 +229,7 @@ class Explorer {
         return false;
     }
 
-    static byte[] toByteArray(File file) {
+    /*static byte[] toByteArray(File file) {
         FileInputStream fileInputStream;
         byte[] byteArray = new byte[((int) file.length())];
 
@@ -246,6 +241,19 @@ class Explorer {
             f.printStackTrace();
         } catch (IOException i) {
             i.printStackTrace();
+        }
+        return byteArray;
+    }*/
+/*
+    static byte[] toByteArray(File file, int start, int length) {
+        FileInputStream fileInputStream;
+        byte[] byteArray = new byte[length];
+
+        try {
+            if (start == 0) fileInputStream = new FileInputStream(file);
+            fileInputStream.read(byteArray, start, length);
+        } catch (IOException io) {
+            io.printStackTrace();
         }
         return byteArray;
     }
@@ -268,5 +276,5 @@ class Explorer {
             e.printStackTrace();
         }
         return false;
-    }
+    }*/
 }

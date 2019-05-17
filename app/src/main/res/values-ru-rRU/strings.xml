@@ -46,4 +46,12 @@
     <string name="error_class">Значение по умолчанию не является объектом класса</string>
     <string name="setting_default_path">Папка загрузки по умолчанию</string>
     <string name="button_change_path">Изменить</string>
+    <string name="setting_discoverable_time">Время обнаружения устройства</string>
+    <string name="error_empty_send">Нельзя отправить пустые файлы</string>
+    <string name="send_title_receive">Получение</string>
+    <string name="send_title_send">Отправка</string>
+    <string name="setting_home_path">Домашняя папка</string>
+    <string name="error_out_of_memory">Нельзя загрузить файл: не хватает памяти</string>
+    <string name="error_create_file">Файл уже существует. Передача отменена</string>
+    <string name="error_create_directory">Нельзя создать папку. Передача отменена</string>
 </resources>

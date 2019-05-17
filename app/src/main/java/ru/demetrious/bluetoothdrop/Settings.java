@@ -20,15 +20,20 @@ class Settings {
     final static String APP_PREFERENCES_REGEX = "ru.demetrious.bluetoothdrop.regex";
     final static String APP_PREFERENCES_CURRENT_DIRECTORY = "ru.demetrious.bluetoothdrop.current_directory";
 
-    final static String APP_PREFERENCES_SAVE_PATH = "ru.demetrious.bluetoothdrop.setting0";
+    final static String APP_SETTING_SAVE_PATH = "ru.demetrious.bluetoothdrop.setting0";
+    final static String APP_SETTING_HOME_PATH = "ru.demetrious.bluetoothdrop.setting1";
+    final static String APP_SETTING_DISCOVERABLE_TIME = "ru.demetrious.bluetoothdrop.setting2";
 
     static String DEFAULT_SAVE_PATH = null;
+    static String DEFAULT_HOME_PATH = null;
 
     //Список, свичер, путь,
     Settings(MainActivity mainActivity) {
         Settings.mainActivity = mainActivity;
-        DEFAULT_SAVE_PATH = mainActivity.explorer.getGlobalFileDir().getAbsolutePath() + "/bluetoothReceived";
+        DEFAULT_HOME_PATH = mainActivity.explorer.getGlobalFileDir().getAbsolutePath();
+        DEFAULT_SAVE_PATH = DEFAULT_HOME_PATH + "/bluetoothReceived";
         sharedPreferences = mainActivity.getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE);
+        //sharedPreferences.edit().clear().apply();
         generateSettings();
     }
 
@@ -47,10 +52,10 @@ class Settings {
         mainActivity.imageButtonRefresh.setVisibility(View.GONE);
     }
 
-    private void generateSettings() {
-        mainActivity.settingsElements.add(new SettingsElement(SettingsElement.Type.Directory, mainActivity.getString(R.string.setting_default_path), (String) Settings.getPreference(APP_PREFERENCES_SAVE_PATH, DEFAULT_SAVE_PATH, String.class)));//setting0
-
-        //mainActivity.settingsElementAdapter.notifyDataSetChanged();
+    static Object getSetting(String key, Object defaultValue, Class<?> oClass) {
+        Object o = getPreference(key, defaultValue, oClass);
+        int index = Integer.parseInt(key.replaceAll("ru.demetrious.bluetoothdrop.setting", ""));
+        return mainActivity.settingsElements.get(index).getVars()[(Integer) o];
     }
 
     static SharedPreferences.Editor getPreferencesEditor() {
@@ -68,5 +73,13 @@ class Settings {
         }
         if (value == null) value = defaultValue;
         return value;
+    }
+
+    private void generateSettings() {
+        mainActivity.settingsElements.add(new SettingsElement(SettingsElement.Type.Directory, mainActivity.getString(R.string.setting_default_path), (String) Settings.getPreference(APP_SETTING_SAVE_PATH, DEFAULT_SAVE_PATH, String.class)));//setting0
+        mainActivity.settingsElements.add(new SettingsElement(SettingsElement.Type.Directory, mainActivity.getString(R.string.setting_home_path), (String) Settings.getPreference(APP_SETTING_HOME_PATH, DEFAULT_HOME_PATH, String.class)));//setting1
+        mainActivity.settingsElements.add(new SettingsElement(SettingsElement.Type.Spinner, mainActivity.getString(R.string.setting_discoverable_time), mainActivity.getString(R.string.timeUnits_seconds), 30, 60, 90, 120, 150, 180, 210, 240, 270, 300));//setting2
+
+        //mainActivity.settingsElementAdapter.notifyDataSetChanged();
     }
 }

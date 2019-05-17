@@ -49,6 +49,8 @@ class Friends {
                             break;
                         case BluetoothAdapter.STATE_TURNING_OFF:
                             //Log.e("BluetoothState", "STATE_TURNING_OFF");
+                            if (mainActivity.bluetooth.isTransferring)
+                                mainActivity.bluetooth.transferDate.cancel();
                             break;
                         case BluetoothAdapter.STATE_OFF:
                             //Log.e("BluetoothState", "STATE_OFF");
@@ -93,7 +95,7 @@ class Friends {
     void enableDiscoveryMode() {
         if (bluetoothAdapter != null && !isDiscoverable) {
             Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-            discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 66);
+            discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, (int) Settings.getSetting(Settings.APP_SETTING_DISCOVERABLE_TIME, 30, Integer.class));
             mainActivity.startActivityForResult(discoverableIntent, MainActivity.TURNING_ON_DISCOVERABLE);
         }
     }
