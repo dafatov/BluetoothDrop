@@ -19,7 +19,7 @@ class FriendsElement {
         return isOnline;
     }
 
-    void setOnline(boolean online) {
-        isOnline = online;
+    void setOnline() {
+        isOnline = true;
     }
 }

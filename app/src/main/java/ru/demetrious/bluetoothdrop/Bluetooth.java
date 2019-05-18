@@ -24,10 +24,8 @@ class Bluetooth {
     Server server;
 
     private BluetoothSocket clientSocket = null;
-    private BluetoothSocket serverSocket = null;
 
     TransferDate transferDate = null;
-    Thread transfer = null;
     boolean isServer = false;
     boolean isTransferring = false;
 
@@ -79,8 +77,7 @@ class Bluetooth {
             }
 
             transferDate = new TransferDate(clientSocket);
-            transfer = new Thread(transferDate, "TransferDataClient");
-            transfer.start();
+            new Thread(transferDate, "TransferDataClient").start();
             server.stop();
         }
 
@@ -107,6 +104,7 @@ class Bluetooth {
         @Override
         public void run() {
             while (true) {
+                BluetoothSocket serverSocket;
                 try {
                     Log.e("Server", "Is start");
                     serverSocket = serverAcceptSocket.accept();
@@ -116,8 +114,7 @@ class Bluetooth {
 
                 if (serverSocket != null) {
                     transferDate = new TransferDate(serverSocket);
-                    transfer = new Thread(transferDate, "TransferDataServer");
-                    transfer.start();
+                    new Thread(transferDate, "TransferDataServer").start();
                     stop();
                     break;
                 }

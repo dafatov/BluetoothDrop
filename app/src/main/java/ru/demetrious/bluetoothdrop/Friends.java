@@ -30,7 +30,7 @@ class Friends {
                     boolean isBonded = false;
                     for (FriendsElement friendsElement : mainActivity.friendsElements) {
                         if (friendsElement.getBluetoothDevice().getAddress().equals(device.getAddress())) {
-                            friendsElement.setOnline(true);
+                            friendsElement.setOnline();
                             isBonded = true;
                             break;
                         }

@@ -76,9 +76,9 @@ class Settings {
     }
 
     private void generateSettings() {
-        mainActivity.settingsElements.add(new SettingsElement(SettingsElement.Type.Directory, mainActivity.getString(R.string.setting_default_path), (String) Settings.getPreference(APP_SETTING_SAVE_PATH, DEFAULT_SAVE_PATH, String.class)));//setting0
-        mainActivity.settingsElements.add(new SettingsElement(SettingsElement.Type.Directory, mainActivity.getString(R.string.setting_home_path), (String) Settings.getPreference(APP_SETTING_HOME_PATH, DEFAULT_HOME_PATH, String.class)));//setting1
-        mainActivity.settingsElements.add(new SettingsElement(SettingsElement.Type.Spinner, mainActivity.getString(R.string.setting_discoverable_time), mainActivity.getString(R.string.timeUnits_seconds), 30, 60, 90, 120, 150, 180, 210, 240, 270, 300));//setting2
+        mainActivity.settingsElements.add(new SettingsElement<>(SettingsElement.Type.Directory, mainActivity.getString(R.string.setting_default_path), (String) Settings.getPreference(APP_SETTING_SAVE_PATH, DEFAULT_SAVE_PATH, String.class)));//setting0
+        mainActivity.settingsElements.add(new SettingsElement<>(SettingsElement.Type.Directory, mainActivity.getString(R.string.setting_home_path), (String) Settings.getPreference(APP_SETTING_HOME_PATH, DEFAULT_HOME_PATH, String.class)));//setting1
+        mainActivity.settingsElements.add(new SettingsElement<>(SettingsElement.Type.Spinner, mainActivity.getString(R.string.setting_discoverable_time), mainActivity.getString(R.string.timeUnits_seconds), 30, 60, 90, 120, 150, 180, 210, 240, 270, 300));//setting2
 
         //mainActivity.settingsElementAdapter.notifyDataSetChanged();
     }

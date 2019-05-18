@@ -46,7 +46,8 @@ class FileManager {
         byte[] bytes = new byte[length];
 
         try {
-            fileInputStream.read(bytes, 0, length);
+            if (fileInputStream.read(bytes, 0, length) != length)
+                Log.e("ERROR", "FileManager.read.notAllBytesRead");
         } catch (IOException e) {
             e.printStackTrace();
         }
