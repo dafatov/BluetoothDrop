@@ -14,7 +14,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".LaunchActivity"
+            android:name=".activities.LaunchActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.Launcher">
 
@@ -25,32 +25,32 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".PathActivity"
+            android:name=".activities.PathActivity"
             android:label="@string/path"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.Dialog" />
         <activity
-            android:name=".LoadActivity"
+            android:name=".activities.LoadActivity"
             android:label="@string/load"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.Dialog" />
         <activity
-            android:name=".SortActivity"
+            android:name=".activities.SortActivity"
             android:label="@string/bar_sort"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.Dialog" />
         <activity
-            android:name=".SelectActivity"
+            android:name=".activities.SelectActivity"
             android:label="@string/bar_select"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.Dialog" />
         <activity
-            android:name=".AboutActivity"
+            android:name=".activities.AboutActivity"
             android:label="@string/bar_about"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.Dialog" />
         <activity
-            android:name=".MainActivity"
+            android:name=".activities.MainActivity"
             android:screenOrientation="portrait" />
     </application>
 

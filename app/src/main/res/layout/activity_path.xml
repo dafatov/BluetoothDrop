@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:minHeight="300dp"
-    tools:context=".PathActivity">
+    tools:context=".activities.PathActivity">
 
     <TextView
         android:id="@+id/path_path"

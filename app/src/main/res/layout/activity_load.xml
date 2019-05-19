@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:minWidth="250dp"
     android:minHeight="100dp"
-    tools:context=".LoadActivity">
+    tools:context=".activities.LoadActivity">
 
     <TextView
         android:id="@+id/count_file"

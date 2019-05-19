@@ -53,5 +53,8 @@
     <string name="setting_home_path">Домашняя папка</string>
     <string name="error_out_of_memory">Нельзя загрузить файл: не хватает памяти</string>
     <string name="error_create_file">Файл уже существует. Передача отменена</string>
-    <string name="error_create_directory">Нельзя создать папку. Передача отменена</string>
+    <string name="error_create_directory">Невозможно создать папку. Передача отменена</string>
+    <string name="about_version">Версия</string>
+    <string name="about_author">Автор</string>
+    <string name="about_info">Информация</string>
 </resources>

@@ -15,7 +15,7 @@
         android:contentDescription="@string/list_preview"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_action_folder" />
+        app:srcCompat="@drawable/ic_format_folder" />
 
     <TextView
         android:id="@+id/explorer_name"
