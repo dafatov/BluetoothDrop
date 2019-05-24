@@ -446,7 +446,6 @@ public class MainActivity extends AppCompatActivity {
                         Toast.makeText(getApplicationContext(), getString(R.string.error_create_file), Toast.LENGTH_LONG).show();
                         break;
                     case HANDLER_STOP_TRANSFER_CLIENT:
-                        break;
                     case HANDLER_STOP_TRANSFER_SERVER:
                         getBluetooth().getTransferDate().cancel();
                         break;
