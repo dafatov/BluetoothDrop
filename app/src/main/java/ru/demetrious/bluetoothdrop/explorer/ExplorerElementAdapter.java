@@ -58,14 +58,14 @@ public class ExplorerElementAdapter extends ArrayAdapter<ExplorerElement> {
 
         viewHolder.select.setOnClickListener(v -> {
             if (viewHolder.select.isChecked()) {
-                if (mainActivity.getExplorer().selectedFiles.add(mainActivity.getExplorer().currentDirectory +
+                if (mainActivity.getExplorer().getSelectedFiles().add(mainActivity.getExplorer().getCurrentDirectory() +
                         "/" + viewHolder.name.getText())) {
                     mainActivity.getSelectedFiles().add(viewHolder.name.getText().toString());
                     mainActivity.getExplorer().addAmount(1);
                     explorerElement.setSelected(true);
                 }
             } else {
-                if (mainActivity.getExplorer().selectedFiles.remove(mainActivity.getExplorer().currentDirectory +
+                if (mainActivity.getExplorer().getSelectedFiles().remove(mainActivity.getExplorer().getCurrentDirectory() +
                         "/" + viewHolder.name.getText())) {
                     mainActivity.getSelectedFiles().remove(viewHolder.name.getText().toString());
                     mainActivity.getExplorer().addAmount(-1);

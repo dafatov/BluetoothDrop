@@ -3,7 +3,6 @@ package ru.demetrious.bluetoothdrop.friends;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
-import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -39,7 +38,7 @@ public class Friends {
     }
 
     public void enableDiscoveryMode() {
-        if (getBluetoothAdapter() != null && !isDiscoverable) {
+        if (!isDiscoverable) {
             Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
             discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, (int) Settings.getSetting(Settings.APP_SETTING_DISCOVERABLE_TIME, 30, Integer.class));
             mainActivity.startActivityForResult(discoverableIntent, MainActivity.TURNING_ON_DISCOVERABLE);
@@ -49,19 +48,26 @@ public class Friends {
     public void showBoundedDevices() {
         mainActivity.getFriendsElements().clear();
         for (BluetoothDevice bondedDevice : getBluetoothAdapter().getBondedDevices()) {
-            mainActivity.getFriendsElements().add(new FriendsElement(bondedDevice, false));
+            boolean tmp = true;
+            for (int i = 0; i < mainActivity.getFriendsElements().size(); i++) {
+                if (bondedDevice.getName().compareToIgnoreCase(mainActivity.getFriendsElements().get(i).getBluetoothDevice().getName()) < 0) {
+                    mainActivity.getFriendsElements().add(i, new FriendsElement(bondedDevice, false));
+                    tmp = false;
+                    break;
+                }
+            }
+            if (tmp)
+                mainActivity.getFriendsElements().add(new FriendsElement(bondedDevice, false));
         }
         mainActivity.getFriendsElementAdapter().notifyDataSetChanged();
     }
 
     public void startDiscovery() {
-        Log.e("Friends", "showDiscoveringDevices");
-
         stopDiscovery();
         getBluetoothAdapter().startDiscovery();
     }
 
-    private void stopDiscovery() {
+    public void stopDiscovery() {
         if (getBluetoothAdapter().isDiscovering()) getBluetoothAdapter().cancelDiscovery();
     }
 
@@ -88,6 +94,4 @@ public class Friends {
     public void setDiscoverable(boolean discoverable) {
         isDiscoverable = discoverable;
     }
-
-
 }

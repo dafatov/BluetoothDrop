@@ -30,7 +30,7 @@ public class Send {
         mainActivity.getBluetooth().getHandlerLoadActivity().obtainMessage(LoadActivity.HANDLER_STATUS_SET, R.string.send_process);
         stop = false;
 
-        filesPaths = mainActivity.getExplorer().selectedFiles.toArray(new String[0]);
+        filesPaths = mainActivity.getExplorer().getSelectedFiles().toArray(new String[0]);
         files = new File[filesPaths.length];
         filesParts = new long[filesPaths.length];
         String sharedDir = getSharedDirectory();
@@ -79,6 +79,7 @@ public class Send {
                         full[1] = (byte) (tmp.length % 256);
                         System.arraycopy(tmp, 0, full, 2, tmp.length);
                         mainActivity.getBluetooth().getTransferDate().write(full);//3
+
                         if (!stop) FileManager.openFileInputStream(files[i]);
                         for (int j = 0; j < filesParts[i] && !stop; j += Bluetooth.PACKET_WIDTH - 2) {
                             full = new byte[full.length];
@@ -89,6 +90,7 @@ public class Send {
                             if (full[1] < 0) full[0]++;
                             System.arraycopy(tmp, 0, full, 2, size);
                             mainActivity.getBluetooth().getTransferDate().write(full);//4
+                            mainActivity.getBluetooth().getHandlerLoadActivity().obtainMessage(LoadActivity.HANDLER_PROGRESS_INC).sendToTarget();
                         }
                         FileManager.closeFileInputStream();
                     }

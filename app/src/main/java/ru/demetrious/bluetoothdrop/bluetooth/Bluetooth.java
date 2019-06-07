@@ -7,9 +7,7 @@ import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Handler;
-import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,7 +15,6 @@ import java.io.OutputStream;
 import java.util.UUID;
 
 import ru.demetrious.bluetoothdrop.R;
-import ru.demetrious.bluetoothdrop.activities.LoadActivity;
 import ru.demetrious.bluetoothdrop.activities.MainActivity;
 import ru.demetrious.bluetoothdrop.friends.FriendsElement;
 
@@ -37,15 +34,13 @@ public class Bluetooth {
     private TransferDate transferDate = null;
     private boolean isServer = false;
     private boolean isTransferring = false;
-    private final BroadcastReceiver discoveryFinishReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver bluetoothBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
 
             assert action != null;
             switch (action) {
-                case BluetoothAdapter.ACTION_DISCOVERY_STARTED:
-                    break;
                 case BluetoothDevice.ACTION_FOUND:
                     BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
@@ -57,17 +52,22 @@ public class Bluetooth {
                             break;
                         }
                     }
-                    if (!isBonded) {
-                        mainActivity.getFriendsElements().add(new FriendsElement(device, true));
+                    if (!isBonded && device.getName() != null) {
+                        boolean tmp = true;
+                        for (int i = mainActivity.getFriends().getBluetoothAdapter().getBondedDevices().size(); i < mainActivity.getFriendsElements().size(); i++) {
+                            if (device.getName().compareToIgnoreCase(mainActivity.getFriendsElements().get(i).getBluetoothDevice().getName()) < 0) {
+                                mainActivity.getFriendsElements().add(i, new FriendsElement(device, true));
+                                tmp = false;
+                                break;
+                            }
+                        }
+                        if (tmp)
+                            mainActivity.getFriendsElements().add(new FriendsElement(device, true));
                     }
                     mainActivity.getFriendsElementAdapter().notifyDataSetChanged();
                     break;
-                case BluetoothAdapter.ACTION_DISCOVERY_FINISHED:
-                    break;
                 case BluetoothAdapter.ACTION_STATE_CHANGED:
                     switch (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.STATE_ON)) {
-                        case BluetoothAdapter.STATE_TURNING_ON:
-                            break;
                         case BluetoothAdapter.STATE_TURNING_OFF:
                             if (isTransferring)
                                 transferDate.cancel();
@@ -145,8 +145,8 @@ public class Bluetooth {
         return device;
     }
 
-    public BroadcastReceiver getDiscoveryFinishReceiver() {
-        return discoveryFinishReceiver;
+    public BroadcastReceiver getBluetoothBroadcastReceiver() {
+        return bluetoothBroadcastReceiver;
     }
 
     private class Client implements Runnable {
@@ -160,16 +160,13 @@ public class Bluetooth {
 
         @Override
         public void run() {
-            if (mainActivity.getFriends().getBluetoothAdapter().isDiscovering())
-                mainActivity.getFriends().getBluetoothAdapter().cancelDiscovery();
+            mainActivity.getFriends().stopDiscovery();
             try {
                 clientSocket.connect();
             } catch (IOException io) {
-                //Log.e("ClientError", tmp.getAddress());
                 stop();
                 return;
             }
-
             transferDate = new TransferDate(clientSocket);
             new Thread(getTransferDate(), "TransferDataClient").start();
             server.stop();
@@ -200,7 +197,6 @@ public class Bluetooth {
             while (true) {
                 BluetoothSocket serverSocket;
                 try {
-                    Log.e("Server", "Is start");
                     serverSocket = serverAcceptSocket.accept();
                 } catch (IOException i) {
                     break;
@@ -218,7 +214,6 @@ public class Bluetooth {
         void stop() {
             try {
                 serverAcceptSocket.close();
-                Log.e("Server", "Is stop");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -237,11 +232,6 @@ public class Bluetooth {
                 output = socket.getOutputStream();
                 device = socket.getRemoteDevice();
                 MainActivity.getHandler().obtainMessage(MainActivity.HANDLER_CONNECTED).sendToTarget();
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    Log.e("MaxReceivePacketSize", String.valueOf(socket.getMaxReceivePacketSize()));
-                    Log.e("MaxTransmitPacketSize", String.valueOf(socket.getMaxTransmitPacketSize()));
-                }
-                Log.e("ClientConnect", socket.getRemoteDevice().getAddress());
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -257,7 +247,6 @@ public class Bluetooth {
                     input.read(buffer);
                     Received.getHandler().obtainMessage(Received.HANDLER_RECEIVED_PART, buffer).sendToTarget();
                 } catch (IOException e) {
-                    Log.e("ClientDisconnect", socket.getRemoteDevice().getAddress());
                     device = null;
                     MainActivity.getHandler().obtainMessage(MainActivity.HANDLER_DISCONNECTED).sendToTarget();
                     break;
@@ -269,7 +258,6 @@ public class Bluetooth {
             try {
                 output.write(bytes);
                 output.flush();
-                getHandlerLoadActivity().obtainMessage(LoadActivity.HANDLER_PROGRESS_INC).sendToTarget();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -303,12 +291,10 @@ public class Bluetooth {
                 e.printStackTrace();
             }
             write(new byte[]{0, 0});
-            Log.e("Bluetooth", "ClientStop");
         }
 
         private void cancelServer() {
             write(new byte[]{0, 0});
-            Log.e("Bluetooth", "ServerStop");
         }
     }
 }

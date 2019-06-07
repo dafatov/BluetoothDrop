@@ -128,9 +128,7 @@ public class SettingsElementAdapter extends ArrayAdapter<SettingsElement> {
     }
 
     private int generateViewId() {
-        int id = 0;
-        while (mainActivity.findViewById(++id) != null) ;
-        return id;
+        for (int id = 0; ; ) if (mainActivity.findViewById(++id) == null) return id;
     }
 
     private class ViewHolder {

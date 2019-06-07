@@ -12,21 +12,21 @@ public class SettingsElement<T> {
     private Type type;
 
     @SafeVarargs
-    SettingsElement(Type type, String name, String description, @NonNull T... vars) {
-        ID = "ru.demetrious.bluetoothdrop.setting" + index++;
-        this.name = name;
-        this.description = description;
-        this.type = type;
-        if ((type == Type.Directory && vars.length == 0 || type == Type.ToggleButton && vars.length == 2 || type == Type.Spinner && vars.length > 2) && !vars.getClass().equals(Serializable[].class))
-            this.vars = vars;
-        else if (type == Type.Directory)
-            throw new NumberFormatException("Vars is must be empty");
-        else if (type == Type.ToggleButton)
-            throw new NumberFormatException("Vars is must have two arguments");
-        else if (type == Type.Spinner)
-            throw new NumberFormatException("Error in spinner");
-        else
-            throw new NullPointerException("Setting include different types");
+    SettingsElement(@NonNull Type type, @NonNull String name, @NonNull String description, @NonNull T... vars) {
+        if (vars.length == 0 && type == Type.Directory || vars.length == 2 && type == Type.ToggleButton || vars.length > 2 && type == Type.Spinner)
+            if (vars.length == 0 || (!vars.getClass().equals(Serializable[].class) &&
+                    (vars[0].getClass().equals(Integer.class) || vars[0].getClass().equals(Float.class) ||
+                            vars[0].getClass().equals(Double.class) || vars[0].getClass().equals(String.class) ||
+                            vars[0].getClass().equals(Boolean.class) || vars[0].getClass().equals(Character.class) ||
+                            vars[0].getClass().equals(Byte.class) || vars[0].getClass().equals(Short.class) ||
+                            vars[0].getClass().equals(Long.class) || vars[0].getClass().isPrimitive()))) {
+                ID = "ru.demetrious.bluetoothdrop.setting" + index++;
+                this.name = name;
+                this.description = description;
+                this.type = type;
+                this.vars = vars;
+            } else throw new ClassFormatException(vars.getClass());
+        else throw new TypeSettingsException(type, vars.length);
     }
 
     Type getType() {
@@ -55,5 +55,17 @@ public class SettingsElement<T> {
 
     enum Type {
         ToggleButton, Spinner, Directory
+    }
+}
+
+class ClassFormatException extends ExceptionInInitializerError {
+    ClassFormatException(Class oClass) {
+        super("Need primitive massive or their analogs massive classes but found: " + oClass.getSimpleName());
+    }
+}
+
+class TypeSettingsException extends ExceptionInInitializerError {
+    TypeSettingsException(SettingsElement.Type type, int length) {
+        super("Type " + type + " can't have amount " + length);
     }
 }

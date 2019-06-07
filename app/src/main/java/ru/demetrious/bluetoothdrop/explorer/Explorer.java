@@ -20,15 +20,15 @@ import ru.demetrious.bluetoothdrop.activities.MainActivity;
 import ru.demetrious.bluetoothdrop.activities.SelectActivity;
 
 public class Explorer {
-    public ArrayList<String> selectedFiles;
-    public String currentDirectory;
+    private String currentDirectory;
+    private ArrayList<String> selectedFiles;
     private MainActivity mainActivity;
     private int sortBy = R.id.sort_name, sort = R.id.sort_asc;
     private boolean ignoreCase = true, sortFolders = true;
 
     public Explorer(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
-        selectedFiles = new ArrayList<>();
+        setSelectedFiles(new ArrayList<>());
     }
 
     public void explorer() {
@@ -43,14 +43,14 @@ public class Explorer {
 
         mainActivity.getImageButtonHome().setImageResource(R.drawable.ic_action_home);
 
-        showDirectory(new File(currentDirectory));
+        showDirectory(new File(getCurrentDirectory()));
     }
 
     public File getGlobalFileDir() {
         if (Environment.isExternalStorageEmulated()) {
             return Environment.getExternalStorageDirectory();
         } else {
-            return /*mainActivity.getFilesDir();*/new File("/storage/emmc");
+            return Environment.getRootDirectory();
         }
     }
 
@@ -60,13 +60,13 @@ public class Explorer {
             int countFiles = 0;
 
             mainActivity.getExplorerElements().clear();
-            currentDirectory = dir.getAbsolutePath();
-            mainActivity.getTextPath().setText(currentDirectory);
+            setCurrentDirectory(dir.getAbsolutePath());
+            mainActivity.getTextPath().setText(getCurrentDirectory());
             for (File file : dir.listFiles()) {
                 boolean selected = false;
 
                 if (!file.isDirectory()) {
-                    if (selectedFiles.contains(file.getAbsolutePath())) {
+                    if (getSelectedFiles().contains(file.getAbsolutePath())) {
                         countSelected++;
                         selected = true;
                     }
@@ -95,20 +95,19 @@ public class Explorer {
                             if (!explorerElement.isFolder() && matcher.matches()) {
                                 explorerElement.setSelected(resultCode == SelectActivity.SELECT);
                                 if (explorerElement.isSelected()) {
-                                    if (mainActivity.getExplorer().selectedFiles.add(mainActivity.getExplorer().currentDirectory +
+                                    if (getSelectedFiles().add(getCurrentDirectory() +
                                             "/" + explorerElement.getName())) {
                                         mainActivity.getSelectedFiles().add(explorerElement.getName());
-                                        mainActivity.getExplorer().addAmount(1);
+                                        addAmount(1);
                                     }
                                 } else {
-                                    if (mainActivity.getExplorer().selectedFiles.remove(mainActivity.getExplorer().currentDirectory +
+                                    if (getSelectedFiles().remove(getCurrentDirectory() +
                                             "/" + explorerElement.getName())) {
                                         mainActivity.getSelectedFiles().remove(explorerElement.getName());
-                                        mainActivity.getExplorer().addAmount(-1);
+                                        addAmount(-1);
                                     }
                                 }
-                                mainActivity.getExplorerElementsAdapter().notifyDataSetChanged();
-                                mainActivity.getSelectedFilesAdapter().notifyDataSetChanged();
+
                             }
                         }
                         break;
@@ -118,20 +117,18 @@ public class Explorer {
                                 explorerElement.setSelected(!explorerElement.isSelected());
 
                                 if (explorerElement.isSelected()) {
-                                    if (mainActivity.getExplorer().selectedFiles.add(mainActivity.getExplorer().currentDirectory +
+                                    if (getSelectedFiles().add(getCurrentDirectory() +
                                             "/" + explorerElement.getName())) {
                                         mainActivity.getSelectedFiles().add(explorerElement.getName());
-                                        mainActivity.getExplorer().addAmount(1);
+                                        addAmount(1);
                                     }
                                 } else {
-                                    if (mainActivity.getExplorer().selectedFiles.remove(mainActivity.getExplorer().currentDirectory +
+                                    if (getSelectedFiles().remove(getCurrentDirectory() +
                                             "/" + explorerElement.getName())) {
                                         mainActivity.getSelectedFiles().remove(explorerElement.getName());
-                                        mainActivity.getExplorer().addAmount(-1);
+                                        addAmount(-1);
                                     }
                                 }
-                                mainActivity.getExplorerElementsAdapter().notifyDataSetChanged();
-                                mainActivity.getSelectedFilesAdapter().notifyDataSetChanged();
                             }
                         }
                         break;
@@ -140,6 +137,7 @@ public class Explorer {
                         System.exit(4354);
                 }
                 mainActivity.getExplorerElementsAdapter().notifyDataSetChanged();
+                mainActivity.getSelectedFilesAdapter().notifyDataSetChanged();
             } catch (PatternSyntaxException e) {
                 Toast.makeText(mainActivity.getApplicationContext(), mainActivity.getString(R.string.error_regex), Toast.LENGTH_SHORT).show();
             }
@@ -222,5 +220,21 @@ public class Explorer {
                 System.exit(5493);
         }
         return false;
+    }
+
+    public ArrayList<String> getSelectedFiles() {
+        return selectedFiles;
+    }
+
+    private void setSelectedFiles(ArrayList<String> selectedFiles) {
+        this.selectedFiles = selectedFiles;
+    }
+
+    public String getCurrentDirectory() {
+        return currentDirectory;
+    }
+
+    public void setCurrentDirectory(String currentDirectory) {
+        this.currentDirectory = currentDirectory;
     }
 }

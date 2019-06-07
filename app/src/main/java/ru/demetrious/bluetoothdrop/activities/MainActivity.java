@@ -55,8 +55,7 @@ public class MainActivity extends AppCompatActivity {
     public final static int HANDLER_ERROR_CREATE_DIRECTORY = 20;
     public final static int HANDLER_ERROR_CREATE_FILE = 21;
     final static int HANDLER_SEND_START = 12;
-    final static int HANDLER_STOP_TRANSFER_CLIENT = 15;
-    final static int HANDLER_STOP_TRANSFER_SERVER = 16;
+    final static int HANDLER_STOP_TRANSFER = 15;
     final static int HANDLER_RECEIVE_HANDLER = 17;
     final static int HANDLER_LOAD_ACTIVITY_FINISH = 18;
     private final static String[] sizeUnits = new String[5];
@@ -124,25 +123,15 @@ public class MainActivity extends AppCompatActivity {
         declarations();
         listeners();
 
-        getExplorer().currentDirectory = (String) Settings.getPreference(Settings.APP_PREFERENCES_CURRENT_DIRECTORY, Settings.DEFAULT_HOME_PATH, String.class);
+        getExplorer().setCurrentDirectory((String) Settings.getPreference(Settings.APP_PREFERENCES_CURRENT_DIRECTORY, Settings.DEFAULT_HOME_PATH, String.class));
         getExplorer().explorer();
 
         getBluetooth().startServer();
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-    }
-
-    @Override
-    protected void onPause() {
-        Settings.getPreferencesEditor().putString(Settings.APP_PREFERENCES_CURRENT_DIRECTORY, getExplorer().currentDirectory).apply();
-        super.onPause();
-    }
-
-    @Override
     protected void onStop() {
+        Settings.getPreferencesEditor().putString(Settings.APP_PREFERENCES_CURRENT_DIRECTORY, getExplorer().getCurrentDirectory()).apply();
         if (getBluetooth().isTransferring())
             getBluetooth().getTransferDate().cancel();
         super.onStop();
@@ -150,10 +139,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        unregisterReceiver(getBluetooth().getDiscoveryFinishReceiver());
-        if (getFriends().getBluetoothAdapter().isDiscovering()) {
-            getFriends().getBluetoothAdapter().cancelDiscovery();
-        }
+        unregisterReceiver(getBluetooth().getBluetoothBroadcastReceiver());
+        getFriends().stopDiscovery();
         super.onDestroy();
     }
 
@@ -259,7 +246,7 @@ public class MainActivity extends AppCompatActivity {
         getNavigation().setOnNavigationItemReselectedListener(menuItem -> {
             switch (menuItem.getItemId()) {
                 case R.id.navigation_explorer:
-                    getExplorer().showDirectory(new File(getExplorer().currentDirectory));
+                    getExplorer().showDirectory(new File(getExplorer().getCurrentDirectory()));
                     break;
                 case R.id.navigation_friends:
                     getFriends().startDiscovery();
@@ -274,7 +261,7 @@ public class MainActivity extends AppCompatActivity {
                 ExplorerElement explorerElement = getExplorerElements().get(position);
 
                 if (explorerElement.isFolder())
-                    getExplorer().showDirectory(new File(getExplorer().currentDirectory + "/" + explorerElement.getName()));
+                    getExplorer().showDirectory(new File(getExplorer().getCurrentDirectory() + "/" + explorerElement.getName()));
             } else if (getListMain().getAdapter().equals(getFriendsElementAdapter())) {
                 FriendsElement element = getFriendsElements().get(position);
                 if (getBluetooth().getDevice() != null) {
@@ -286,11 +273,9 @@ public class MainActivity extends AppCompatActivity {
         });
 
         buttonSend.setOnClickListener(v -> {
-            if (!getExplorer().selectedFiles.isEmpty() && getBluetooth().getDevice() != null) {
-                Intent intentLoad = new Intent(MainActivity.this, LoadActivity.class);
-                intentLoad.putExtra(LoadActivity.EXTRA_IS_SERVER, false);
-                startActivity(intentLoad);
-            }
+            Intent intentLoad = new Intent(MainActivity.this, LoadActivity.class);
+            intentLoad.putExtra(LoadActivity.EXTRA_IS_SERVER, false);
+            startActivity(intentLoad);
         });
 
         getImageButtonUp().setOnClickListener(v -> imageButtonUp());
@@ -298,7 +283,7 @@ public class MainActivity extends AppCompatActivity {
         getImageButtonRefresh().setOnClickListener(v -> {
             switch (getNavigation().getSelectedItemId()) {
                 case R.id.navigation_explorer:
-                    getExplorer().showDirectory(new File(getExplorer().currentDirectory));
+                    getExplorer().showDirectory(new File(getExplorer().getCurrentDirectory()));
                     break;
                 case R.id.navigation_friends:
                     getFriends().showBoundedDevices();
@@ -320,8 +305,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private boolean imageButtonUp() {
-        if (!getExplorer().currentDirectory.equals(getExplorer().getGlobalFileDir().getAbsolutePath())) {
-            getExplorer().showDirectory(new File(getExplorer().currentDirectory).getParentFile());
+        if (!getExplorer().getCurrentDirectory().equals(Settings.DEFAULT_HOME_PATH)) {
+            getExplorer().showDirectory(new File(getExplorer().getCurrentDirectory()).getParentFile());
             return true;
         }
         return false;
@@ -338,7 +323,6 @@ public class MainActivity extends AppCompatActivity {
 
         setListMain(findViewById(R.id.list_main));
         setExplorerElementsAdapter(new ExplorerElementAdapter(this, R.layout.advanced_list_explorer, getExplorerElements()));
-        getListMain().setAdapter(getExplorerElementsAdapter());
 
         setFriendsElementAdapter(new FriendsElementAdapter(this, R.layout.advanced_list_friends, getFriendsElements()));
         setSettingsElementAdapter(new SettingsElementAdapter(this, R.layout.advanced_list_settings, getSettingsElements()));
@@ -347,7 +331,7 @@ public class MainActivity extends AppCompatActivity {
         setSelectedFilesAdapter(new ArrayAdapter<String>(this, R.layout.support_simple_spinner_dropdown_item, getSelectedFiles()) {
             @Override
             public void notifyDataSetChanged() {
-                buttonSend.setVisibility((!getExplorer().selectedFiles.isEmpty() && getBluetooth().getDevice() != null) ? View.VISIBLE : View.GONE);
+                buttonSend.setVisibility((!getExplorer().getSelectedFiles().isEmpty() && getBluetooth().getDevice() != null) ? View.VISIBLE : View.GONE);
                 super.notifyDataSetChanged();
             }
         });
@@ -362,20 +346,11 @@ public class MainActivity extends AppCompatActivity {
 
         buttonSend = findViewById(R.id.floatingActionButton_send);
 
-        IntentFilter intentFilter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-        registerReceiver(getBluetooth().getDiscoveryFinishReceiver(), intentFilter);
-
-        intentFilter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
-        registerReceiver(getBluetooth().getDiscoveryFinishReceiver(), intentFilter);
-
-        intentFilter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-        registerReceiver(getBluetooth().getDiscoveryFinishReceiver(), intentFilter);
+        IntentFilter intentFilter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+        registerReceiver(getBluetooth().getBluetoothBroadcastReceiver(), intentFilter);
 
         intentFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
-        registerReceiver(getBluetooth().getDiscoveryFinishReceiver(), intentFilter);
-
-        intentFilter = new IntentFilter(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED);
-        registerReceiver(getBluetooth().getDiscoveryFinishReceiver(), intentFilter);
+        registerReceiver(getBluetooth().getBluetoothBroadcastReceiver(), intentFilter);
 
         setHandler(new Handler() {
             @Override
@@ -396,7 +371,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                         break;
                     case HANDLER_CONNECTED:
-                        if (!getExplorer().selectedFiles.isEmpty())
+                        if (!getExplorer().getSelectedFiles().isEmpty())
                             buttonSend.setVisibility(View.VISIBLE);
                         boolean exist = false;
                         for (int i = 0; i < getFriendsElements().size(); i++) {
@@ -411,7 +386,7 @@ public class MainActivity extends AppCompatActivity {
                         getFriendsElementAdapter().notifyDataSetChanged();
                         break;
                     case HANDLER_DISCONNECTED:
-                        if (!getExplorer().selectedFiles.isEmpty())
+                        if (!getExplorer().getSelectedFiles().isEmpty())
                             buttonSend.setVisibility(View.GONE);
                         getFriendsElementAdapter().notifyDataSetChanged();
                         if (getFriends().getBluetoothAdapter().isEnabled())
@@ -445,8 +420,7 @@ public class MainActivity extends AppCompatActivity {
                     case HANDLER_ERROR_CREATE_FILE:
                         Toast.makeText(getApplicationContext(), getString(R.string.error_create_file), Toast.LENGTH_LONG).show();
                         break;
-                    case HANDLER_STOP_TRANSFER_CLIENT:
-                    case HANDLER_STOP_TRANSFER_SERVER:
+                    case HANDLER_STOP_TRANSFER:
                         getBluetooth().getTransferDate().cancel();
                         break;
                     case HANDLER_LOAD_ACTIVITY_FINISH:

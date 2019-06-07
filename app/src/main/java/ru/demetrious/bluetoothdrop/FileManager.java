@@ -1,7 +1,5 @@
 package ru.demetrious.bluetoothdrop;
 
-import android.util.Log;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -46,8 +44,7 @@ public class FileManager {
         byte[] bytes = new byte[length];
 
         try {
-            if (fileInputStream.read(bytes, 0, length) != length)
-                Log.e("ERROR", "FileManager.read.notAllBytesRead");
+            fileInputStream.read(bytes, 0, length);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -65,7 +62,6 @@ public class FileManager {
 
     public static void closeFileInputStream() {
         try {
-            Log.e("ERROR", "CloseFileInputStream:" + (fileInputStream != null));
             if (fileInputStream != null)
                 fileInputStream.close();
         } catch (IOException e) {
@@ -75,7 +71,6 @@ public class FileManager {
 
     public static void closeFileOutputStream() {
         try {
-            Log.e("ERROR", "CloseFileOutputStream:" + (fileOutputStream != null));
             if (fileOutputStream != null)
                 fileOutputStream.close();
         } catch (IOException e) {

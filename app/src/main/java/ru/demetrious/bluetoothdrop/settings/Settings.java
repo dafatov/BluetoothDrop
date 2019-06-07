@@ -17,9 +17,10 @@ public class Settings {
     public final static String APP_PREFERENCES_IGNORE_CASE = "ru.demetrious.bluetoothdrop.ignore_case";
     public final static String APP_PREFERENCES_REGEX = "ru.demetrious.bluetoothdrop.regex";
     public final static String APP_PREFERENCES_CURRENT_DIRECTORY = "ru.demetrious.bluetoothdrop.current_directory";
-    public final static String APP_SETTING_SAVE_PATH = "ru.demetrious.bluetoothdrop.setting0";
-    public final static String APP_SETTING_HOME_PATH = "ru.demetrious.bluetoothdrop.setting1";
-    public final static String APP_SETTING_DISCOVERABLE_TIME = "ru.demetrious.bluetoothdrop.setting2";
+
+    public final static String APP_SETTING_HOME_PATH = "ru.demetrious.bluetoothdrop.setting0";
+    public final static String APP_SETTING_DISCOVERABLE_TIME = "ru.demetrious.bluetoothdrop.setting1";
+    public final static String APP_SETTING_SAVE_PATH = "ru.demetrious.bluetoothdrop.setting2";
 
     private final static String APP_PREFERENCES = "settings";
 
@@ -79,8 +80,8 @@ public class Settings {
     }
 
     private void generateSettings() {
-        mainActivity.getSettingsElements().add(new SettingsElement<>(SettingsElement.Type.Directory, mainActivity.getString(R.string.setting_default_path), (String) Settings.getPreference(APP_SETTING_SAVE_PATH, DEFAULT_SAVE_PATH, String.class)));//setting0
-        mainActivity.getSettingsElements().add(new SettingsElement<>(SettingsElement.Type.Directory, mainActivity.getString(R.string.setting_home_path), (String) Settings.getPreference(APP_SETTING_HOME_PATH, DEFAULT_HOME_PATH, String.class)));//setting1
-        mainActivity.getSettingsElements().add(new SettingsElement<>(SettingsElement.Type.Spinner, mainActivity.getString(R.string.setting_discoverable_time), mainActivity.getString(R.string.timeUnits_seconds), 30, 60, 90, 120, 150, 180, 210, 240, 270, 300));//setting2
+        mainActivity.getSettingsElements().add(new SettingsElement<>(SettingsElement.Type.Directory, mainActivity.getString(R.string.setting_home_path), (String) Settings.getPreference(APP_SETTING_HOME_PATH, DEFAULT_HOME_PATH, String.class)));//setting0
+        mainActivity.getSettingsElements().add(new SettingsElement<>(SettingsElement.Type.Spinner, mainActivity.getString(R.string.setting_discoverable_time), mainActivity.getString(R.string.timeUnits_seconds), 30, 60, 90, 120, 150, 180, 210, 240, 270, 300));//setting1
+        mainActivity.getSettingsElements().add(new SettingsElement<>(SettingsElement.Type.Directory, mainActivity.getString(R.string.setting_default_path), (String) Settings.getPreference(APP_SETTING_SAVE_PATH, DEFAULT_SAVE_PATH, String.class)));//setting2
     }
 }

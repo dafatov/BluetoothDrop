@@ -46,6 +46,7 @@ public class Received extends HandlerThread {
                 if (msg.what == HANDLER_RECEIVED_PART) {
                     buffer = ((byte[]) msg.obj);
                     size = buffer[0] * 256 + buffer[1];
+
                     //Обработчик прерывания передачи со стороны сервера
                     if (size == 0) {
                         mainActivity.getBluetooth().getTransferDate().cancel();
@@ -56,7 +57,6 @@ public class Received extends HandlerThread {
                         stopReceive();
                         return;
                     }
-
                     if (blocked) return;
 
                     switch (partType) {
@@ -89,7 +89,6 @@ public class Received extends HandlerThread {
                             currentFile = Settings.getPreference(Settings.APP_SETTING_SAVE_PATH, Settings.DEFAULT_SAVE_PATH, String.class) + new String(tmp, 0, size);
 
                             long available = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR2 ? statFs.getAvailableBlocksLong() * statFs.getBlockSizeLong() : statFs.getAvailableBlocks() * statFs.getBlockSize();
-                            Log.e("AVAILABLE", available + " байт");
                             if (fileSize >= available) {
                                 getHandler().removeMessages(HANDLER_RECEIVED_PART);
                                 blocked = true;
@@ -100,7 +99,6 @@ public class Received extends HandlerThread {
                             }
 
                             currentStatus = FileManager.openFileOutputStream(currentFile);
-                            Log.e("STATUS", String.valueOf(currentStatus));
                             switch (currentStatus) {
                                 case FileManager.FILE_CREATED:
                                     break;
@@ -141,8 +139,6 @@ public class Received extends HandlerThread {
                             }
                             break;
                     }
-                } else {
-                    Log.e("ERROR", "Received.handler.error");
                 }
             }
         };
@@ -172,10 +168,6 @@ public class Received extends HandlerThread {
     }
 
     enum PartType {
-        receivedAllSize, receivedFileSize, receivedPart, receivedFileName
+        receivedAllSize, receivedFileSize, receivedFileName, receivedPart
     }
 }
-
-
-
-
